@@ -4,9 +4,11 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/States';
 import { useLesson, useSaveLesson } from '@/features/lessons/hooks';
 import { LessonForm } from '@/features/lessons/LessonForm';
 import { lessonToFormValues } from '@/features/lessons/lessonFormSchema';
+import { useT } from '@/i18n';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 export default function EditLessonScreen() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const lessonQuery = useLesson(id);
   const save = useSaveLesson();
@@ -16,18 +18,18 @@ export default function EditLessonScreen() {
     return <ErrorState error={lessonQuery.error} onRetry={() => void lessonQuery.refetch()} />;
   }
   const lesson = lessonQuery.data;
-  if (!lesson) return <EmptyState icon="search-outline" title="Lesson not found" />;
+  if (!lesson) return <EmptyState icon="search-outline" title={t('lessonNotFound')} />;
 
   return (
     <LessonForm
       initialValues={lessonToFormValues(lesson)}
       requireFutureStart={new Date(lesson.start_time) > new Date()}
-      submitLabel="Save changes"
+      submitLabel={t('saveChanges')}
       submitting={save.isPending}
       submitError={save.isError ? getErrorMessage(save.error) : null}
-      onSubmit={(input) =>
+      onSubmit={(inputs) =>
         save.mutate(
-          { lessonId: lesson.id, input },
+          { lessonId: lesson.id, inputs },
           {
             onSuccess: () => router.back(),
             onError: (error) => logError('updateLesson', error),

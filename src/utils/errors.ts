@@ -17,6 +17,8 @@ const BUSINESS_MESSAGES: Record<string, string> = {
   LESSON_STARTED: 'This lesson has already started.',
   LESSON_NOT_FOUND: 'This lesson no longer exists.',
   NOT_REGISTERED: "You're not registered for this lesson.",
+  CANCELLATION_DEADLINE_PASSED:
+    "Cancellations close 24 hours before the lesson. Contact your coach if you can't make it.",
   REASON_TOO_LONG: 'Please keep the reason under 500 characters.',
   ACCOUNT_INACTIVE: 'Your account is inactive. Please contact your coach.',
   PROFILE_NOT_FOUND: 'Your member profile could not be found. Please contact your coach.',

@@ -19,48 +19,12 @@ import { PlayerProfileCard } from '@/features/profile/PlayerProfileCard';
 import { splitRegistrations } from '@/features/registrations/api';
 import { useMemberRegistrations } from '@/features/registrations/hooks';
 import { RegistrationRow } from '@/features/registrations/RegistrationRow';
+import { useT } from '@/i18n';
 import { getAccountState, type AccountState, type PlayerLevel } from '@/types/models';
 import { getErrorMessage, logError } from '@/utils/errors';
 
-const accountSummary: Record<AccountState, string> = {
-  pending:
-    'This player signed up and is waiting for your approval. Until you approve them they cannot see lessons or join.',
-  active: 'This account is active and can sign in.',
-  deactivated: 'This account is inactive and cannot use the app.',
-};
-
-const accountAction: Record<AccountState, string> = {
-  pending: 'Approve member',
-  active: 'Deactivate account',
-  deactivated: 'Reactivate account',
-};
-
-interface ConfirmCopy {
-  title: string;
-  message: (name: string) => string;
-  confirmLabel: string;
-}
-
-const confirmCopy: Record<AccountState, ConfirmCopy> = {
-  pending: {
-    title: 'Approve this member?',
-    message: (name) => `${name} will be able to sign in, see lessons and join them.`,
-    confirmLabel: 'Approve',
-  },
-  active: {
-    title: 'Deactivate this account?',
-    message: (name) =>
-      `${name} will no longer be able to use the app, and their registrations for lessons that have not started will be cancelled to free the spots.`,
-    confirmLabel: 'Deactivate',
-  },
-  deactivated: {
-    title: 'Reactivate this account?',
-    message: (name) => `${name} will be able to sign in and join lessons again.`,
-    confirmLabel: 'Reactivate',
-  },
-};
-
 export default function MemberDetailScreen() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const me = useCurrentMember();
   const memberQuery = useMember(id);
@@ -86,7 +50,7 @@ export default function MemberDetailScreen() {
     );
   }
   const member = memberQuery.data;
-  if (!member) return <EmptyState icon="person-outline" title="Member not found" />;
+  if (!member) return <EmptyState icon="person-outline" title={t('memberNotFound')} />;
 
   const isSelf = member.id === me.id;
   const state = getAccountState(member);
@@ -110,7 +74,7 @@ export default function MemberDetailScreen() {
       { memberId: member.id, levelId: levelChoice.id },
       {
         onSuccess: () => {
-          setFeedback(`Level updated to ${levelChoice.name}.`);
+          setFeedback(t('levelUpdated', { name: levelChoice.name }));
           setLevelSheetOpen(false);
         },
         onError: (error) => logError('setMemberLevel', error),
@@ -125,6 +89,36 @@ export default function MemberDetailScreen() {
     setActiveSheetOpen(true);
   };
 
+  const confirmCopy: Record<
+    AccountState,
+    { title: string; message: string; confirmLabel: string }
+  > = {
+    pending: {
+      title: t('approveTitle'),
+      message: t('approveMessage', { name: member.full_name }),
+      confirmLabel: t('approve'),
+    },
+    active: {
+      title: t('deactivateTitle'),
+      message: t('deactivateMessage', { name: member.full_name }),
+      confirmLabel: t('deactivate'),
+    },
+    deactivated: {
+      title: t('reactivateTitle'),
+      message: t('reactivateMessage', { name: member.full_name }),
+      confirmLabel: t('reactivate'),
+    },
+  };
+  const accountSummary: Record<AccountState, string> = {
+    pending: t('accountPendingHint'),
+    active: t('accountActiveHint'),
+    deactivated: t('accountDeactivatedHint'),
+  };
+  const accountAction: Record<AccountState, string> = {
+    pending: t('approveMember'),
+    active: t('deactivateAccount'),
+    deactivated: t('reactivateAccount'),
+  };
   const sheet = confirmCopy[sheetState];
   const activeTarget = sheetState !== 'active';
 
@@ -137,16 +131,19 @@ export default function MemberDetailScreen() {
           if (result.active) {
             setFeedback(
               result.approved
-                ? `${member.full_name} is approved and can now join lessons.`
-                : 'Account reactivated.',
+                ? t('memberApproved', { name: member.full_name })
+                : t('accountReactivated'),
             );
             return;
           }
           const n = result.cancelled_registrations;
           setFeedback(
             n > 0
-              ? `Account deactivated. ${n} upcoming ${n === 1 ? 'registration was' : 'registrations were'} cancelled.`
-              : 'Account deactivated.',
+              ? t('accountDeactivatedWithCancels', {
+                  count: n,
+                  kind: n === 1 ? t('registrationWas') : t('registrationsWere'),
+                })
+              : t('accountDeactivated'),
           );
         },
         onError: (error) => logError('setMemberActive', error),
@@ -168,7 +165,7 @@ export default function MemberDetailScreen() {
 
       <View style={styles.contact}>
         <Button
-          label="Email"
+          label={t('email')}
           icon="mail-outline"
           variant="secondary"
           size="md"
@@ -177,7 +174,7 @@ export default function MemberDetailScreen() {
         />
         {member.phone ? (
           <Button
-            label="Call"
+            label={t('call')}
             icon="call-outline"
             variant="secondary"
             size="md"
@@ -189,7 +186,7 @@ export default function MemberDetailScreen() {
 
       {member.role === 'player' ? (
         <Card>
-          <SectionHeader title="Player level" />
+          <SectionHeader title={t('playerLevel')} />
           <ChipGroup
             options={levelOptions}
             value={member.player_level_id}
@@ -197,17 +194,17 @@ export default function MemberDetailScreen() {
             onChange={chooseLevel}
           />
           <AppText variant="caption" tone="muted">
-            Only you can assign levels. Players see their level but cannot change it.
+            {t('levelAssignHint')}
           </AppText>
         </Card>
       ) : null}
 
       <Card>
-        <SectionHeader title="Account" />
+        <SectionHeader title={t('account')} />
         <AppText tone="muted">{accountSummary[state]}</AppText>
         {isSelf ? (
           <AppText variant="caption" tone="subtle">
-            You can&apos;t deactivate your own account.
+            {t('cantDeactivateSelf')}
           </AppText>
         ) : (
           <Button
@@ -219,11 +216,11 @@ export default function MemberDetailScreen() {
         )}
       </Card>
 
-      <SectionHeader title="Upcoming lessons" count={upcoming.length} />
+      <SectionHeader title={t('upcomingLessons')} count={upcoming.length} />
       {registrations.isPending ? (
         <LoadingState />
       ) : upcoming.length === 0 ? (
-        <AppText tone="muted">No upcoming lessons.</AppText>
+        <AppText tone="muted">{t('noUpcomingLessons')}</AppText>
       ) : (
         upcoming.map((registration) => (
           <RegistrationRow
@@ -242,9 +239,12 @@ export default function MemberDetailScreen() {
 
       <ConfirmationModal
         visible={levelSheetOpen}
-        title="Change player level?"
-        message={`${member.full_name} will be shown as ${levelChoice?.name ?? 'the selected level'}.`}
-        confirmLabel="Change level"
+        title={t('changeLevelTitle')}
+        message={t('changeLevelMessage', {
+          name: member.full_name,
+          level: levelChoice?.name ?? t('selectedLevel'),
+        })}
+        confirmLabel={t('changeLevel')}
         loading={setLevel.isPending}
         error={setLevel.isError ? getErrorMessage(setLevel.error) : null}
         onConfirm={confirmLevel}
@@ -254,7 +254,7 @@ export default function MemberDetailScreen() {
       <ConfirmationModal
         visible={activeSheetOpen}
         title={sheet.title}
-        message={sheet.message(member.full_name)}
+        message={sheet.message}
         confirmLabel={sheet.confirmLabel}
         destructive={!activeTarget}
         loading={setActive.isPending}

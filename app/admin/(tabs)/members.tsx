@@ -17,9 +17,11 @@ import { colors, spacing } from '@/constants/theme';
 import { findLevel, useLevels } from '@/features/levels/hooks';
 import { filterMembers, groupMembers } from '@/features/members/api';
 import { useMembers } from '@/features/members/hooks';
+import { useT } from '@/i18n';
 import { getAccountState, type AccountState, type Member } from '@/types/models';
 
 export default function MembersScreen() {
+  const t = useT();
   const members = useMembers();
   const { data: levels } = useLevels();
   const [search, setSearch] = useState('');
@@ -44,20 +46,26 @@ export default function MembersScreen() {
       refreshing={members.isRefetching}
     >
       <ScreenHeader
-        title="Members"
-        subtitle={members.data ? `${activeCount} active · ${all.length} total` : undefined}
+        title={t('members')}
+        subtitle={
+          members.data
+            ? t('membersActiveTotal', { active: activeCount, total: all.length })
+            : undefined
+        }
       />
       {pendingCount > 0 ? (
         <Banner
           tone="warning"
-          message={`${pendingCount} ${pendingCount === 1 ? 'person is' : 'people are'} waiting for your approval.`}
+          message={
+            pendingCount === 1 ? t('pendingOne') : t('pendingOther', { count: pendingCount })
+          }
         />
       ) : null}
       <TextField
-        label="Search"
+        label={t('search')}
         value={search}
         onChangeText={setSearch}
-        placeholder="Search players…"
+        placeholder={t('searchPlayers')}
         autoCapitalize="none"
         autoCorrect={false}
         clearButtonMode="while-editing"
@@ -73,19 +81,19 @@ export default function MembersScreen() {
           retrying={members.isRefetching}
         />
       ) : pending.length + approved.length === 0 ? (
-        <EmptyState icon="people-outline" title="No players found." />
+        <EmptyState icon="people-outline" title={t('noPlayersFound')} />
       ) : (
         <>
           {pending.length > 0 ? (
             <>
-              <SectionHeader title="Waiting for approval" count={pending.length} />
+              <SectionHeader title={t('waitingApproval')} count={pending.length} />
               {pending.map(renderRow)}
             </>
           ) : null}
           {approved.length > 0 ? (
             <>
               {pending.length > 0 ? (
-                <SectionHeader title="Members" count={approved.length} />
+                <SectionHeader title={t('members')} count={approved.length} />
               ) : null}
               {approved.map(renderRow)}
             </>
@@ -94,25 +102,24 @@ export default function MembersScreen() {
       )}
 
       <AppText variant="caption" tone="subtle" style={styles.note}>
-        Players create their own account in the app. Open a pending member to approve them, which
-        lets them see lessons and join.
+        {t('membersNote')}
       </AppText>
     </ScreenContainer>
   );
 }
 
-const stateLabels: Record<AccountState, string> = {
-  pending: 'waiting for approval',
-  active: 'active',
-  deactivated: 'inactive',
-};
-
 function MemberRow({ member, levelRank }: { member: Member; levelRank?: number }) {
+  const t = useT();
   const state = getAccountState(member);
+  const stateLabels: Record<AccountState, string> = {
+    pending: t('waitingForApprovalShort'),
+    active: t('activeShort'),
+    deactivated: t('inactiveShort'),
+  };
   return (
     <Card
       onPress={() => router.push({ pathname: '/admin/member/[id]', params: { id: member.id } })}
-      accessibilityLabel={`${member.full_name}, ${member.player_level_name ?? 'no level'}, ${stateLabels[state]}`}
+      accessibilityLabel={`${member.full_name}, ${member.player_level_name ?? t('noLevel')}, ${stateLabels[state]}`}
       // Pending sign-ups stay at full contrast: they need the coach's attention.
       style={state === 'deactivated' ? styles.inactive : undefined}
     >
@@ -129,7 +136,7 @@ function MemberRow({ member, levelRank }: { member: Member; levelRank?: number }
           </AppText>
           <View style={styles.badges}>
             {member.role === 'admin' ? (
-              <StatusBadge label="Coach" tone="primary" />
+              <StatusBadge label={t('coach')} tone="primary" />
             ) : (
               <LevelBadge name={member.player_level_name} rank={levelRank} />
             )}

@@ -4,11 +4,11 @@ import { AppText } from '@/components/AppText';
 import { StatusBadge } from '@/components/Badges';
 import { InfoRow } from '@/components/InfoRow';
 import { spacing } from '@/constants/theme';
-import { formatCourts } from '@/utils/capacity';
+import { useT } from '@/i18n';
 import { formatDateTime, formatLongDate, formatTimeRange } from '@/utils/date';
 
 import type { Lesson } from './api';
-import type { LessonAvailability } from './lessonState';
+import { AVAILABILITY_LABEL_KEYS, type LessonAvailability } from './lessonState';
 
 interface LessonDetailsHeaderProps {
   lesson: Lesson;
@@ -17,15 +17,24 @@ interface LessonDetailsHeaderProps {
 
 /** Title, date, time, location, level and courts, shared by player and admin details. */
 export function LessonDetailsHeader({ lesson, availability }: LessonDetailsHeaderProps) {
-  const deadline = lesson.registration_deadline;
-  const showDeadline =
-    deadline !== null && availability.state !== 'cancelled' && availability.state !== 'completed';
+  const t = useT();
+  const upcoming =
+    availability.state === 'open' ||
+    availability.state === 'full' ||
+    availability.state === 'registered' ||
+    availability.state === 'deadline_passed';
+  const courts = t(lesson.court_count === 1 ? 'courtOne' : 'courtOther', {
+    count: lesson.court_count,
+  });
+  const players = t(lesson.capacity === 1 ? 'playerOne' : 'playerOther', {
+    count: lesson.capacity,
+  });
 
   return (
     <View style={styles.container}>
       {availability.state !== 'open' ? (
         <StatusBadge
-          label={availability.label}
+          label={t(AVAILABILITY_LABEL_KEYS[availability.state])}
           tone={availability.tone}
           icon={availability.state === 'registered' ? 'checkmark' : undefined}
         />
@@ -41,12 +50,14 @@ export function LessonDetailsHeader({ lesson, availability }: LessonDetailsHeade
         />
         <InfoRow icon="time-outline" text={formatTimeRange(lesson.start_time, lesson.end_time)} />
         <InfoRow icon="location-outline" text={lesson.location} />
-        <InfoRow icon="tennisball-outline" text={lesson.level?.name ?? 'All levels'} />
-        <InfoRow icon="grid-outline" text={formatCourts(lesson.court_count, lesson.capacity)} />
-        {showDeadline ? (
+        <InfoRow icon="tennisball-outline" text={lesson.level?.name ?? t('allLevels')} />
+        <InfoRow icon="grid-outline" text={`${courts} · ${players}`} />
+        {upcoming ? (
           <InfoRow
             icon="hourglass-outline"
-            text={`Registration closes ${formatDateTime(deadline)}`}
+            text={t('registrationClosesAt', {
+              when: formatDateTime(availability.registrationClosesAt),
+            })}
           />
         ) : null}
       </View>

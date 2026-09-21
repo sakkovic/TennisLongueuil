@@ -8,11 +8,12 @@ import { Card } from '@/components/Card';
 import { InfoRow } from '@/components/InfoRow';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { colors, spacing } from '@/constants/theme';
+import { useT } from '@/i18n';
 import { formatDayHeader, formatTimeRange } from '@/utils/date';
 import { firstName, formatNameList } from '@/utils/names';
 
 import { findMyRegistration, getActiveRegistrations, type Lesson } from './api';
-import { getLessonAvailability } from './lessonState';
+import { AVAILABILITY_LABEL_KEYS, getLessonAvailability } from './lessonState';
 
 interface LessonCardProps {
   lesson: Lesson;
@@ -22,6 +23,8 @@ interface LessonCardProps {
   onJoin?: () => void;
   joining?: boolean;
   now?: Date;
+  /** Date, time and capacity only — for "later" lists. */
+  compact?: boolean;
 }
 
 const MAX_AVATARS = 4;
@@ -33,14 +36,47 @@ export function LessonCard({
   onJoin,
   joining,
   now,
+  compact = false,
 }: LessonCardProps) {
+  const t = useT();
   const active = getActiveRegistrations(lesson);
   const mine = findMyRegistration(lesson, currentUserId);
   const isRegistered = mine?.status === 'joined';
   const availability = getLessonAvailability(lesson, isRegistered, now);
+  const statusLabel = t(AVAILABILITY_LABEL_KEYS[availability.state]);
   const cancelled = availability.state === 'cancelled';
   const showBadge = availability.state !== 'open' && availability.state !== 'full';
   const names = active.map((r) => firstName(r.player.full_name));
+
+  if (compact) {
+    return (
+      <Card
+        onPress={onPress}
+        accessibilityLabel={`${lesson.title}, ${formatDayHeader(lesson.start_time)}`}
+        style={isRegistered && !cancelled ? styles.registered : undefined}
+      >
+        <View style={styles.topRow}>
+          <View style={styles.compactText}>
+            <AppText variant="overline" tone={cancelled ? 'subtle' : 'primary'}>
+              {formatDayHeader(lesson.start_time, now)}
+            </AppText>
+            <AppText variant="bodyStrong" numberOfLines={1}>
+              {formatTimeRange(lesson.start_time, lesson.end_time)}
+            </AppText>
+          </View>
+          {cancelled ? (
+            <StatusBadge label={t('cancelled')} tone="danger" />
+          ) : isRegistered ? (
+            <StatusBadge label={t('registered')} tone="success" icon="checkmark" />
+          ) : (
+            <AppText variant="caption" tone="muted">
+              {lesson.registered_count}/{lesson.capacity}
+            </AppText>
+          )}
+        </View>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -55,7 +91,7 @@ export function LessonCard({
         </AppText>
         {showBadge ? (
           <StatusBadge
-            label={availability.label}
+            label={statusLabel}
             tone={availability.tone}
             icon={isRegistered && !cancelled ? 'checkmark' : undefined}
           />
@@ -69,11 +105,11 @@ export function LessonCard({
       <View style={styles.meta}>
         <InfoRow icon="time-outline" text={formatTimeRange(lesson.start_time, lesson.end_time)} />
         <InfoRow icon="location-outline" text={lesson.location} />
-        <InfoRow icon="tennisball-outline" text={lesson.level?.name ?? 'All levels'} />
+        <InfoRow icon="tennisball-outline" text={lesson.level?.name ?? t('allLevels')} />
       </View>
 
       {cancelled ? (
-        <AppText tone="muted">This lesson has been cancelled.</AppText>
+        <AppText tone="muted">{t('lessonCancelledNote')}</AppText>
       ) : (
         <>
           <CapacityIndicator registered={lesson.registered_count} capacity={lesson.capacity} />
@@ -101,7 +137,7 @@ export function LessonCard({
 
       {onJoin && availability.canJoin ? (
         <Button
-          label="Join lesson"
+          label={t('joinLesson')}
           icon="add-circle-outline"
           onPress={onJoin}
           loading={joining}
@@ -109,7 +145,7 @@ export function LessonCard({
         />
       ) : null}
       {onJoin && isRegistered && !cancelled ? (
-        <Button label="View lesson" variant="secondary" size="md" onPress={onPress} />
+        <Button label={t('viewLesson')} variant="secondary" size="md" onPress={onPress} />
       ) : null}
     </Card>
   );
@@ -130,4 +166,5 @@ const styles = StyleSheet.create({
   avatar: { borderRadius: 16, borderWidth: 2, borderColor: colors.surface },
   overlap: { marginLeft: -10 },
   names: { flex: 1 },
+  compactText: { flex: 1, gap: spacing.xxs },
 });

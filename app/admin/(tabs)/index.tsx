@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
+import { Banner } from '@/components/Banner';
 import { Button } from '@/components/Button';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -14,10 +15,13 @@ import { useCurrentMember } from '@/features/auth/AuthProvider';
 import { useLessonsRealtime, useUpcomingLessons } from '@/features/lessons/hooks';
 import { LessonCard } from '@/features/lessons/LessonCard';
 import { useMembers } from '@/features/members/hooks';
+import { useT } from '@/i18n';
+import { getAccountState } from '@/types/models';
 import { formatLongDate, getGreeting } from '@/utils/date';
 import { firstName } from '@/utils/names';
 
 export default function AdminHomeScreen() {
+  const t = useT();
   const member = useCurrentMember();
   const lessons = useUpcomingLessons();
   const members = useMembers();
@@ -26,6 +30,7 @@ export default function AdminHomeScreen() {
   const scheduled = (lessons.data ?? []).filter((lesson) => lesson.status === 'scheduled');
   const nextLesson = scheduled[0];
   const activeMembers = (members.data ?? []).filter((m) => m.active && m.role === 'player').length;
+  const pendingCount = (members.data ?? []).filter((m) => getAccountState(m) === 'pending').length;
 
   const refresh = () => {
     void lessons.refetch();
@@ -37,11 +42,28 @@ export default function AdminHomeScreen() {
       <ScreenHeader
         overline={formatLongDate(new Date())}
         title={`${getGreeting()}, ${firstName(member.full_name)}`}
-        subtitle="Here's what's coming up at the club."
+        subtitle={t('homeSubtitle')}
       />
 
+      {pendingCount > 0 ? (
+        <Pressable
+          onPress={() => router.navigate('/admin/members')}
+          accessibilityRole="button"
+          accessibilityLabel={
+            pendingCount === 1 ? t('pendingOne') : t('pendingOther', { count: pendingCount })
+          }
+        >
+          <Banner
+            tone="warning"
+            message={
+              pendingCount === 1 ? t('pendingOne') : t('pendingOther', { count: pendingCount })
+            }
+          />
+        </Pressable>
+      ) : null}
+
       <Button
-        label="Create lesson"
+        label={t('createLesson')}
         icon="add-circle-outline"
         onPress={() => router.push('/admin/lesson/new')}
       />
@@ -49,19 +71,19 @@ export default function AdminHomeScreen() {
       <View style={styles.stats}>
         <StatTile
           icon="calendar-outline"
-          label="Upcoming lessons"
+          label={t('upcomingLessons')}
           value={lessons.data ? String(scheduled.length) : '–'}
           onPress={() => router.navigate('/admin/lessons')}
         />
         <StatTile
           icon="people-outline"
-          label="Active players"
+          label={t('activePlayers')}
           value={members.data ? String(activeMembers) : '–'}
           onPress={() => router.navigate('/admin/members')}
         />
       </View>
 
-      <SectionHeader title="Next lesson" />
+      <SectionHeader title={t('nextLesson')} />
       {lessons.isPending ? (
         <LoadingState />
       ) : lessons.isError ? (
@@ -76,8 +98,8 @@ export default function AdminHomeScreen() {
       ) : (
         <EmptyState
           icon="calendar-outline"
-          title="No upcoming lessons"
-          message="Create a lesson and your players will see it right away."
+          title={t('noUpcomingTitleShort')}
+          message={t('noUpcomingCoach')}
         />
       )}
     </ScreenContainer>
@@ -99,11 +121,13 @@ function StatTile({ icon, label, value, onPress }: StatTileProps) {
       accessibilityLabel={`${label}: ${value}`}
       style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
     >
-      <Ionicons name={icon} size={20} color={colors.primary} />
-      <AppText variant="display">{value}</AppText>
       <AppText variant="caption" tone="muted">
         {label}
       </AppText>
+      <View style={styles.tileValue}>
+        <Ionicons name={icon} size={20} color={colors.primary} />
+        <AppText variant="heading">{value}</AppText>
+      </View>
     </Pressable>
   );
 }
@@ -116,9 +140,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
     gap: spacing.xs,
     ...shadow.card,
   },
+  tileValue: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   tilePressed: { backgroundColor: colors.surfaceMuted },
 });

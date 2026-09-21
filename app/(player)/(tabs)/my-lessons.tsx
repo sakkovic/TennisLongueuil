@@ -11,15 +11,12 @@ import { useLessonsRealtime } from '@/features/lessons/hooks';
 import { splitRegistrations } from '@/features/registrations/api';
 import { useMyRegistrations } from '@/features/registrations/hooks';
 import { RegistrationRow } from '@/features/registrations/RegistrationRow';
+import { useT } from '@/i18n';
 
-const tabs = [
-  { value: 'upcoming', label: 'Upcoming' },
-  { value: 'history', label: 'History' },
-] as const;
-
-type Tab = (typeof tabs)[number]['value'];
+type Tab = 'upcoming' | 'history';
 
 export default function MyLessonsScreen() {
+  const t = useT();
   const member = useCurrentMember();
   const registrations = useMyRegistrations(member.id);
   const [tab, setTab] = useState<Tab>('upcoming');
@@ -34,8 +31,15 @@ export default function MyLessonsScreen() {
       onRefresh={() => void registrations.refetch()}
       refreshing={registrations.isRefetching}
     >
-      <ScreenHeader title="My Lessons" />
-      <SegmentedControl options={tabs} value={tab} onChange={setTab} />
+      <ScreenHeader title={t('tabMyLessons')} />
+      <SegmentedControl
+        options={[
+          { value: 'upcoming', label: t('upcoming') },
+          { value: 'history', label: t('history') },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
 
       {registrations.isPending ? (
         <LoadingState />
@@ -49,18 +53,18 @@ export default function MyLessonsScreen() {
         tab === 'upcoming' ? (
           <EmptyState
             icon="calendar-clear-outline"
-            title="You haven't joined any upcoming lessons."
-            message="Browse the lessons your coach has scheduled and join one."
+            title={t('noJoinedUpcoming')}
+            message={t('browseLessons')}
             action={
-              <Button label="See lessons" onPress={() => router.navigate('/')} fullWidth={false} />
+              <Button
+                label={t('seeLessons')}
+                onPress={() => router.navigate('/')}
+                fullWidth={false}
+              />
             }
           />
         ) : (
-          <EmptyState
-            icon="time-outline"
-            title="No lesson history yet."
-            message="Past and cancelled registrations will appear here."
-          />
+          <EmptyState icon="time-outline" title={t('noHistory')} message={t('pastCancelled')} />
         )
       ) : (
         items.map((registration) => (

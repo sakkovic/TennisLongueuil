@@ -10,7 +10,11 @@ import { AppText } from '@/components/AppText';
 import { config } from '@/constants/config';
 import { colors, spacing } from '@/constants/theme';
 import { AuthProvider, useAuth, type AppStatus } from '@/features/auth/AuthProvider';
+import { configureNotificationHandler } from '@/features/notifications/reminders';
+import { I18nProvider } from '@/i18n';
 import { queryClient } from '@/lib/queryClient';
+
+void configureNotificationHandler();
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -20,10 +24,12 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <StatusBar style="dark" />
-          <RootNavigator />
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <StatusBar style="dark" />
+            <RootNavigator />
+          </AuthProvider>
+        </I18nProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );

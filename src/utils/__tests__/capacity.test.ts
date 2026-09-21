@@ -1,7 +1,6 @@
 import {
   capacityForCourts,
   formatCapacity,
-  formatCourts,
   formatPlayerCount,
   formatSpotsRemaining,
   isLessonFull,
@@ -28,8 +27,6 @@ describe('capacity', () => {
     expect(formatSpotsRemaining(4, 4)).toBe('Full');
     expect(formatPlayerCount(1)).toBe('1 player');
     expect(formatPlayerCount(4)).toBe('4 players');
-    expect(formatCourts(1, 4)).toBe('1 court · up to 4 players');
-    expect(formatCourts(2, 8)).toBe('2 courts · up to 8 players');
   });
 
   it('formats and detects full lessons', () => {

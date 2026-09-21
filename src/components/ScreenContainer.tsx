@@ -41,6 +41,8 @@ export function ScreenContainer({
     <ScrollView
       contentContainerStyle={[styles.content, contentStyle]}
       keyboardShouldPersistTaps="handled"
+      nestedScrollEnabled
+      directionalLockEnabled
       refreshControl={
         onRefresh ? (
           <RefreshControl

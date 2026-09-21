@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/refs -- hidden web <input> is only used to call showPicker() */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { useState } from 'react';
-import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { createElement, useRef } from 'react';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, spacing } from '@/constants/theme';
 import { formatLongDate, formatTime } from '@/utils/date';
 
 import { AppText } from './AppText';
@@ -17,11 +18,16 @@ interface DateTimeFieldProps {
   minimumDate?: Date;
 }
 
+interface WebInputElement {
+  value: string;
+  showPicker?: () => void;
+  click: () => void;
+}
+
 /**
- * Native date / time picker:
- *  - iOS: the compact system picker inline in the row
- *  - Android: a field that opens the Material dialog
- *  - Web (development only): a text input (YYYY-MM-DD or HH:MM)
+ * Compact date / time row. Tap it to open the system picker
+ * (iOS compact control, Android dialog, browser calendar / clock on web).
+ * The native web widgets are kept hidden so they cannot blow the layout.
  */
 export function DateTimeField({
   label,
@@ -48,7 +54,9 @@ export function DateTimeField({
             minimumDate={minimumDate}
             accentColor={colors.primary}
             themeVariant="light"
-            onValueChange={(_, date) => onChange(date)}
+            onValueChange={(_, date) => {
+              if (date) onChange(date);
+            }}
             accessibilityLabel={label}
           />
         </View>
@@ -61,7 +69,9 @@ export function DateTimeField({
               value,
               mode,
               minimumDate,
-              onValueChange: (_, date) => onChange(date),
+              onValueChange: (_, date) => {
+                if (date) onChange(date);
+              },
             })
           }
           style={({ pressed }) => [
@@ -70,20 +80,17 @@ export function DateTimeField({
             Boolean(error) && styles.invalid,
           ]}
         >
-          <View style={styles.flex}>
-            <AppText variant="caption" tone="muted">
-              {label}
-            </AppText>
-            <AppText variant="bodyStrong">{display}</AppText>
-          </View>
-          <Ionicons
-            name={mode === 'date' ? 'calendar-outline' : 'time-outline'}
-            size={20}
-            color={colors.primary}
-          />
+          <FieldContent label={label} display={display} mode={mode} />
         </Pressable>
       ) : (
-        <WebDateTimeInput label={label} mode={mode} value={value} onChange={onChange} />
+        <WebDateTimeInput
+          label={label}
+          mode={mode}
+          value={value}
+          onChange={onChange}
+          error={error}
+          display={display}
+        />
       )}
       {error ? (
         <AppText variant="caption" tone="danger">
@@ -94,17 +101,50 @@ export function DateTimeField({
   );
 }
 
+function FieldContent({
+  label,
+  display,
+  mode,
+}: {
+  label: string;
+  display: string;
+  mode: 'date' | 'time';
+}) {
+  return (
+    <>
+      <View style={styles.flex}>
+        <AppText variant="caption" tone="muted">
+          {label}
+        </AppText>
+        <AppText variant="bodyStrong">{display}</AppText>
+      </View>
+      <Ionicons
+        name={mode === 'date' ? 'calendar-outline' : 'time-outline'}
+        size={20}
+        color={colors.primary}
+      />
+    </>
+  );
+}
+
 const pad = (n: number) => String(n).padStart(2, '0');
 
-function WebDateTimeInput({ label, mode, value, onChange }: Omit<DateTimeFieldProps, 'error'>) {
-  const format = (date: Date) =>
+function WebDateTimeInput({
+  label,
+  mode,
+  value,
+  onChange,
+  error,
+  display,
+}: DateTimeFieldProps & { display: string }) {
+  const inputRef = useRef<WebInputElement | null>(null);
+
+  const formatted =
     mode === 'date'
-      ? `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-      : `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-  const [text, setText] = useState(format(value));
+      ? `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`
+      : `${pad(value.getHours())}:${pad(value.getMinutes())}`;
 
   const commit = (input: string) => {
-    setText(input);
     const next = new Date(value);
     const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input);
     const timeMatch = /^(\d{1,2}):(\d{2})$/.exec(input);
@@ -117,49 +157,72 @@ function WebDateTimeInput({ label, mode, value, onChange }: Omit<DateTimeFieldPr
     }
   };
 
+  const openPicker = () => {
+    const input = inputRef.current;
+    if (!input) return;
+    try {
+      input.showPicker?.();
+    } catch {
+      input.click();
+    }
+  };
+
   return (
-    <View style={styles.webContainer}>
-      <AppText variant="label" tone="muted">
-        {label}
-      </AppText>
-      <TextInput
-        value={text}
-        onChangeText={commit}
-        placeholder={mode === 'date' ? 'YYYY-MM-DD' : 'HH:MM'}
-        accessibilityLabel={label}
-        style={styles.webInput}
-      />
-    </View>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${label}: ${display}`}
+      onPress={openPicker}
+      style={({ pressed }) => [
+        styles.field,
+        pressed && styles.pressed,
+        Boolean(error) && styles.invalid,
+      ]}
+    >
+      <FieldContent label={label} display={display} mode={mode} />
+      {createElement('input', {
+        ref: (node: WebInputElement | null) => {
+          inputRef.current = node;
+        },
+        type: mode === 'date' ? 'date' : 'time',
+        value: formatted,
+        step: mode === 'time' ? 900 : undefined,
+        tabIndex: -1,
+        'aria-hidden': true,
+        onChange: (event: { target: { value: string } }) => commit(event.target.value),
+        style: hiddenInputStyle,
+      })}
+    </Pressable>
   );
 }
+
+const hiddenInputStyle = {
+  position: 'absolute' as const,
+  opacity: 0,
+  width: 0,
+  height: 0,
+  border: 'none',
+  padding: 0,
+  pointerEvents: 'none' as const,
+};
 
 const styles = StyleSheet.create({
   container: { gap: spacing.xs },
   flex: { flex: 1, gap: spacing.xxs },
   field: {
+    position: 'relative',
+    overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     minHeight: 56,
     paddingHorizontal: spacing.md + 2,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceMuted,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
   },
   iosField: { justifyContent: 'space-between' },
-  pressed: { backgroundColor: colors.surfaceMuted },
+  pressed: { backgroundColor: colors.border },
   invalid: { borderColor: colors.danger },
-  webContainer: { gap: spacing.xs + 2 },
-  webInput: {
-    ...typography.body,
-    color: colors.text,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md + 2,
-    minHeight: 50,
-  },
 });

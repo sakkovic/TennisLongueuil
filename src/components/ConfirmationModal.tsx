@@ -13,8 +13,11 @@ interface ConfirmationModalProps {
   message?: string;
   confirmLabel: string;
   cancelLabel?: string;
+  /** Optional extra action between confirm and cancel (e.g. "Create all anyway"). */
+  secondaryLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
+  onSecondary?: () => void;
   destructive?: boolean;
   loading?: boolean;
   /** Error to show inside the sheet (e.g. the action failed). */
@@ -30,8 +33,10 @@ export function ConfirmationModal({
   message,
   confirmLabel,
   cancelLabel = 'Go back',
+  secondaryLabel,
   onConfirm,
   onCancel,
+  onSecondary,
   destructive = false,
   loading = false,
   error,
@@ -87,6 +92,14 @@ export function ConfirmationModal({
               onPress={onConfirm}
               loading={loading}
             />
+            {secondaryLabel && onSecondary ? (
+              <Button
+                label={secondaryLabel}
+                variant="secondary"
+                onPress={onSecondary}
+                disabled={loading}
+              />
+            ) : null}
             <Button label={cancelLabel} variant="ghost" onPress={dismiss} disabled={loading} />
           </View>
         </View>

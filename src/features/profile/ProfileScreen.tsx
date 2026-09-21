@@ -9,10 +9,13 @@ import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ListRow } from '@/components/ListRow';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { colors, radius } from '@/constants/theme';
+import { SegmentedControl } from '@/components/SegmentedControl';
+import { colors, radius, spacing } from '@/constants/theme';
 import { signOut } from '@/features/auth/api';
 import { useAuth, useCurrentMember } from '@/features/auth/AuthProvider';
 import { findLevel, useLevels } from '@/features/levels/hooks';
+import { useI18n } from '@/i18n';
+import type { Locale } from '@/i18n/strings';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 import { useUploadAvatar } from './hooks';
@@ -25,6 +28,7 @@ interface ProfileScreenProps {
 
 /** Profile tab for players and the coach. */
 export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreenProps) {
+  const { t, locale, setLocale } = useI18n();
   const member = useCurrentMember();
   const { retryProfile, isRetryingProfile } = useAuth();
   const { data: levels } = useLevels();
@@ -46,7 +50,7 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
     });
     if (result.canceled || !result.assets[0]) return;
     uploadAvatar.mutate(result.assets[0].uri, {
-      onSuccess: () => setPhotoMessage({ tone: 'success', text: 'Profile photo updated.' }),
+      onSuccess: () => setPhotoMessage({ tone: 'success', text: t('photoUpdated') }),
       onError: (error) => {
         logError('uploadAvatar', error);
         setPhotoMessage({ tone: 'danger', text: getErrorMessage(error) });
@@ -67,7 +71,7 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
 
   return (
     <ScreenContainer edges={['top']} onRefresh={retryProfile} refreshing={isRetryingProfile}>
-      <ScreenHeader title="Profile" />
+      <ScreenHeader title={t('profile')} />
 
       <PlayerProfileCard
         member={member}
@@ -79,23 +83,35 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
 
       {member.role === 'player' ? (
         <AppText variant="caption" tone="subtle" style={styles.note}>
-          Your level is assigned by your coach.
+          {t('levelAssignedByCoach')}
         </AppText>
       ) : null}
 
       <View style={styles.actions}>
+        <View style={styles.language}>
+          <AppText variant="bodyStrong">{t('language')}</AppText>
+          <SegmentedControl
+            options={[
+              { value: 'en', label: t('languageEnglish') },
+              { value: 'fr', label: t('languageFrench') },
+            ]}
+            value={locale}
+            onChange={(next) => setLocale(next as Locale)}
+          />
+        </View>
+        <View style={styles.divider} />
         <ListRow
           icon="create-outline"
-          label="Edit profile"
-          description="Name and phone"
+          label={t('editProfile')}
+          description={t('editProfileHint')}
           onPress={onEditProfile}
         />
         <View style={styles.divider} />
-        <ListRow icon="key-outline" label="Change password" onPress={onChangePassword} />
+        <ListRow icon="key-outline" label={t('changePassword')} onPress={onChangePassword} />
         <View style={styles.divider} />
         <ListRow
           icon="log-out-outline"
-          label="Sign out"
+          label={t('signOut')}
           tone="danger"
           onPress={() => setConfirmSignOut(true)}
           trailing={<View />}
@@ -108,10 +124,10 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
 
       <ConfirmationModal
         visible={confirmSignOut}
-        title="Sign out?"
-        message="You'll need your email and password to sign in again."
-        confirmLabel="Sign out"
-        cancelLabel="Stay signed in"
+        title={t('signOutTitle')}
+        message={t('signOutMessage')}
+        confirmLabel={t('signOut')}
+        cancelLabel={t('staySignedIn')}
         destructive
         loading={signingOut}
         onConfirm={handleSignOut}
@@ -123,6 +139,7 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
 
 const styles = StyleSheet.create({
   note: { textAlign: 'center' },
+  language: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.sm },
   actions: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

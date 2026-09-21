@@ -1,9 +1,16 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { useInvalidateLessons } from '@/features/lessons/hooks';
+import { cancelLessonReminder, scheduleLessonReminder } from '@/features/notifications/reminders';
 import { queryKeys } from '@/lib/queryClient';
 
 import { cancelRegistration, fetchPlayerRegistrations, joinLesson } from './api';
+
+export interface JoinLessonInput {
+  lessonId: string;
+  title: string;
+  startTime: string;
+}
 
 /**
  * No optimistic updates: the UI shows "registered" only after the database
@@ -13,7 +20,11 @@ import { cancelRegistration, fetchPlayerRegistrations, joinLesson } from './api'
 export function useJoinLesson() {
   const invalidate = useInvalidateLessons();
   return useMutation({
-    mutationFn: (lessonId: string) => joinLesson(lessonId),
+    mutationFn: async ({ lessonId, title, startTime }: JoinLessonInput) => {
+      const result = await joinLesson(lessonId);
+      void scheduleLessonReminder({ lessonId, title, startTime });
+      return result;
+    },
     onSettled: invalidate,
   });
 }
@@ -21,8 +32,11 @@ export function useJoinLesson() {
 export function useCancelRegistration() {
   const invalidate = useInvalidateLessons();
   return useMutation({
-    mutationFn: ({ lessonId, reason }: { lessonId: string; reason: string }) =>
-      cancelRegistration(lessonId, reason),
+    mutationFn: async ({ lessonId, reason }: { lessonId: string; reason: string }) => {
+      const result = await cancelRegistration(lessonId, reason);
+      void cancelLessonReminder(lessonId);
+      return result;
+    },
     onSettled: invalidate,
   });
 }

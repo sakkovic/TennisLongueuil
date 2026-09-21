@@ -5,6 +5,7 @@ import { AppText } from '@/components/AppText';
 import { AccountStateBadge, LevelBadge, StatusBadge } from '@/components/Badges';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { colors, radius, shadow, spacing } from '@/constants/theme';
+import { useT } from '@/i18n';
 import type { Member } from '@/types/models';
 
 interface PlayerProfileCardProps {
@@ -25,6 +26,7 @@ export function PlayerProfileCard({
   uploadingPhoto = false,
   showStatus = false,
 }: PlayerProfileCardProps) {
+  const t = useT();
   const isCoach = member.role === 'admin';
 
   return (
@@ -47,7 +49,7 @@ export function PlayerProfileCard({
             onPress={onChangePhoto}
             disabled={uploadingPhoto}
             accessibilityRole="button"
-            accessibilityLabel="Change profile photo"
+            accessibilityLabel={t('changePhoto')}
             hitSlop={6}
             style={styles.cameraButton}
           >
@@ -65,22 +67,22 @@ export function PlayerProfileCard({
           {member.full_name}
         </AppText>
         {isCoach ? (
-          <StatusBadge label="Coach" tone="primary" icon="ribbon-outline" />
+          <StatusBadge label={t('coach')} tone="primary" icon="ribbon-outline" />
         ) : (
           <LevelBadge name={member.player_level_name} rank={levelRank} size="lg" />
         )}
         <AppText tone="muted" style={styles.center}>
-          {isCoach ? '🎾 Coach · Administrator' : '🎾 Tennis Member'}
+          {isCoach ? t('coachAdmin') : t('tennisMember')}
         </AppText>
         {showStatus || !member.active ? <AccountStateBadge member={member} /> : null}
       </View>
 
       <View style={styles.details}>
-        <Detail label="Email" value={member.email} />
-        <Detail label="Phone" value={member.phone ?? 'Not provided'} muted={!member.phone} />
+        <Detail label={t('email')} value={member.email} />
+        <Detail label={t('phone')} value={member.phone ?? t('notProvided')} muted={!member.phone} />
         <View style={styles.statRow}>
           <AppText variant="label" tone="muted">
-            Upcoming lessons
+            {t('upcomingLessons')}
           </AppText>
           <View style={styles.statBubble}>
             <AppText variant="heading" tone="primary">

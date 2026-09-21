@@ -7,11 +7,13 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/States';
 import { spacing } from '@/constants/theme';
 import { signOut } from '@/features/auth/api';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { useT } from '@/i18n';
 import { logError } from '@/utils/errors';
 import { firstName } from '@/utils/names';
 
 /** Shown while the profile loads, or when the account cannot use the app. */
 export default function AccountStatusScreen() {
+  const t = useT();
   const { status, profile, profileError, retryProfile, isRetryingProfile } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
 
@@ -26,12 +28,12 @@ export default function AccountStatusScreen() {
   };
 
   const signOutButton = (
-    <Button label="Sign out" variant="secondary" onPress={handleSignOut} loading={signingOut} />
+    <Button label={t('signOut')} variant="secondary" onPress={handleSignOut} loading={signingOut} />
   );
 
   const greeting = profile
-    ? `Thanks for signing up, ${firstName(profile.full_name)}.`
-    : 'Thanks for signing up.';
+    ? t('thanksSignup', { name: firstName(profile.full_name) })
+    : t('thanksSignupAnon');
 
   return (
     <ScreenContainer scroll={false} edges={['top', 'bottom']} contentStyle={styles.center}>
@@ -43,12 +45,12 @@ export default function AccountStatusScreen() {
       ) : status === 'pendingApproval' ? (
         <EmptyState
           icon="hourglass-outline"
-          title="Waiting for approval"
-          message={`${greeting} Your coach reviews every new member, so you'll be able to see lessons as soon as they approve your account.`}
+          title={t('waitingApproval')}
+          message={`${greeting} ${t('pendingMessage')}`}
           action={
             <View style={styles.actions}>
               <Button
-                label="Check again"
+                label={t('checkAgain')}
                 icon="refresh"
                 onPress={retryProfile}
                 loading={isRetryingProfile}
@@ -60,19 +62,19 @@ export default function AccountStatusScreen() {
       ) : status === 'inactive' ? (
         <EmptyState
           icon="lock-closed-outline"
-          title="Your account is inactive"
-          message="Please contact your coach to reactivate your account."
+          title={t('accountInactive')}
+          message={t('accountInactiveMessage')}
           action={signOutButton}
         />
       ) : status === 'profileMissing' ? (
         <EmptyState
           icon="person-outline"
-          title="Profile not found"
-          message="Your member profile has not been set up. Please contact your coach."
+          title={t('profileNotFound')}
+          message={t('profileNotFoundMessage')}
           action={signOutButton}
         />
       ) : (
-        <LoadingState label="Loading your profile…" />
+        <LoadingState label={t('loadingProfile')} />
       )}
     </ScreenContainer>
   );

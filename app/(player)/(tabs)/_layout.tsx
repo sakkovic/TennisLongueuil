@@ -2,14 +2,16 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router/js-tabs';
 
 import { tabScreenOptions } from '@/constants/navigation';
+import { useT } from '@/i18n';
 
 export default function PlayerTabsLayout() {
+  const t = useT();
   return (
     <Tabs screenOptions={tabScreenOptions}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: t('tabHome'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? 'tennisball' : 'tennisball-outline'}
@@ -22,7 +24,7 @@ export default function PlayerTabsLayout() {
       <Tabs.Screen
         name="my-lessons"
         options={{
-          title: 'My Lessons',
+          title: t('tabMyLessons'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'calendar' : 'calendar-outline'} color={color} size={size} />
           ),
@@ -31,7 +33,7 @@ export default function PlayerTabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('tabProfile'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'person' : 'person-outline'} color={color} size={size} />
           ),

@@ -25,11 +25,6 @@ export function formatPlayerCount(count: number): string {
   return `${count} ${count === 1 ? 'player' : 'players'}`;
 }
 
-/** "1 court · up to 4 players" */
-export function formatCourts(courts: number, capacity: number): string {
-  return `${courts} ${courts === 1 ? 'court' : 'courts'} · up to ${formatPlayerCount(capacity)}`;
-}
-
 /** "3 / 4" */
 export function formatCapacity(registered: number, capacity: number): string {
   return `${registered} / ${capacity}`;

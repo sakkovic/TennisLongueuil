@@ -8,15 +8,12 @@ import { SegmentedControl } from '@/components/SegmentedControl';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
 import { useLessonsRealtime, usePastLessons, useUpcomingLessons } from '@/features/lessons/hooks';
 import { LessonCard } from '@/features/lessons/LessonCard';
+import { useT } from '@/i18n';
 
-const tabs = [
-  { value: 'upcoming', label: 'Upcoming' },
-  { value: 'past', label: 'Past' },
-] as const;
-
-type Tab = (typeof tabs)[number]['value'];
+type Tab = 'upcoming' | 'past';
 
 export default function AdminLessonsScreen() {
+  const t = useT();
   const [tab, setTab] = useState<Tab>('upcoming');
   const upcoming = useUpcomingLessons();
   const past = usePastLessons(tab === 'past');
@@ -31,10 +28,10 @@ export default function AdminLessonsScreen() {
       refreshing={query.isRefetching}
     >
       <ScreenHeader
-        title="Lessons"
+        title={t('tabLessons')}
         action={
           <Button
-            label="New"
+            label={t('newLabel')}
             icon="add"
             size="md"
             fullWidth={false}
@@ -42,7 +39,14 @@ export default function AdminLessonsScreen() {
           />
         }
       />
-      <SegmentedControl options={tabs} value={tab} onChange={setTab} />
+      <SegmentedControl
+        options={[
+          { value: 'upcoming', label: t('upcoming') },
+          { value: 'past', label: t('past') },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
 
       {query.isPending ? (
         <LoadingState />
@@ -56,18 +60,18 @@ export default function AdminLessonsScreen() {
         tab === 'upcoming' ? (
           <EmptyState
             icon="calendar-outline"
-            title="No upcoming lessons"
-            message="Create your first lesson to open registrations."
+            title={t('noUpcomingTitleShort')}
+            message={t('noUpcomingCoachCreate')}
             action={
               <Button
-                label="Create lesson"
+                label={t('createLesson')}
                 onPress={() => router.push('/admin/lesson/new')}
                 fullWidth={false}
               />
             }
           />
         ) : (
-          <EmptyState icon="time-outline" title="No past lessons yet." />
+          <EmptyState icon="time-outline" title={t('noPastLessons')} />
         )
       ) : (
         query.data.map((lesson) => (

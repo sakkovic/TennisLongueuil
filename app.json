@@ -48,7 +48,14 @@
       ],
       "expo-status-bar",
       "expo-font",
-      "expo-asset"
+      "expo-asset",
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "color": "#0E4D2E"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

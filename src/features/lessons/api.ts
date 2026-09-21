@@ -60,11 +60,22 @@ export interface LessonInput {
   registration_deadline: string | null;
 }
 
-/** Admin only (enforced by RLS). Capacity is derived by the database. */
-export async function createLesson(input: LessonInput): Promise<string> {
-  const { data, error } = await supabase.from('lessons').insert(input).select('id').single();
+/**
+ * Admin only (enforced by RLS). Capacity is derived by the database.
+ *
+ * A weekly series is a single multi-row insert, so the whole block either
+ * appears or it doesn't — the coach never ends up with half a series. The
+ * occurrences are otherwise independent lessons that can be edited or
+ * cancelled one by one.
+ */
+export async function createLessons(inputs: LessonInput[]): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('lessons')
+    .insert(inputs)
+    .select('id, start_time')
+    .order('start_time', { ascending: true });
   if (error) throw error;
-  return data.id;
+  return data.map((row) => row.id);
 }
 
 async function updateLessonColumns(

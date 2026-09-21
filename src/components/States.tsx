@@ -3,6 +3,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { colors, radius, spacing } from '@/constants/theme';
+import { useT } from '@/i18n';
 import { getErrorMessage } from '@/utils/errors';
 
 import { AppText } from './AppText';
@@ -49,13 +50,14 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({ error, message, onRetry, retrying }: ErrorStateProps) {
+  const t = useT();
   return (
     <View style={styles.container} accessibilityRole="alert">
       <View style={[styles.iconCircle, styles.errorCircle]}>
         <Ionicons name="cloud-offline-outline" size={30} color={colors.danger} />
       </View>
       <AppText variant="heading" style={styles.center}>
-        Couldn&apos;t load this
+        {t('couldntLoad')}
       </AppText>
       <AppText tone="muted" style={styles.center}>
         {message ?? getErrorMessage(error)}
@@ -63,7 +65,7 @@ export function ErrorState({ error, message, onRetry, retrying }: ErrorStateProp
       {onRetry ? (
         <View style={styles.action}>
           <Button
-            label="Try again"
+            label={t('tryAgain')}
             icon="refresh"
             variant="secondary"
             onPress={onRetry}
@@ -77,11 +79,12 @@ export function ErrorState({ error, message, onRetry, retrying }: ErrorStateProp
 }
 
 export function LoadingState({ label }: { label?: string }) {
+  const t = useT();
   return (
     <View
       style={styles.container}
       accessibilityRole="progressbar"
-      accessibilityLabel={label ?? 'Loading'}
+      accessibilityLabel={label ?? t('loading')}
     >
       <ActivityIndicator size="large" color={colors.primary} />
       {label ? <AppText tone="muted">{label}</AppText> : null}

@@ -1,18 +1,27 @@
 import {
+  addWeeks,
+  atMinutesOfDay,
   combineDateAndTime,
   formatDateTime,
   formatDayHeader,
+  formatDuration,
+  formatLeadTime,
   formatLongDate,
   formatShortDate,
   formatTime,
   formatTimeRange,
   getGreeting,
+  minutesOfDay,
+  setDateLocale,
+  toDateKey,
 } from '../date';
 
 // Tests run in America/Toronto (see jest.globalSetup.js).
 const now = new Date(2026, 8, 21, 9, 0);
 
 describe('date formatting', () => {
+  beforeEach(() => setDateLocale('en'));
+
   it('formats times in 12-hour clock', () => {
     expect(formatTime(new Date(2026, 8, 21, 18, 0))).toBe('6:00 PM');
     expect(formatTime(new Date(2026, 8, 21, 0, 5))).toBe('12:05 AM');
@@ -53,9 +62,46 @@ describe('date formatting', () => {
     expect(formatTime(afterChange)).toBe('6:00 PM');
   });
 
+  it('keeps the same weekday and clock time when adding weeks across the DST change', () => {
+    const monday = new Date(2026, 9, 26, 18, 0);
+    const nextMonday = addWeeks(monday, 1);
+
+    expect(nextMonday.getDay()).toBe(monday.getDay());
+    expect(nextMonday.getHours()).toBe(18);
+    expect(nextMonday.toISOString()).toBe('2026-11-02T23:00:00.000Z');
+    // A naive +7 days of milliseconds would have landed an hour earlier.
+    expect(new Date(monday.getTime() + 7 * 24 * 3_600_000).getHours()).toBe(17);
+  });
+
+  it('converts between a date and minutes past midnight', () => {
+    expect(minutesOfDay(new Date(2026, 8, 21, 18, 30))).toBe(18 * 60 + 30);
+    expect(atMinutesOfDay(new Date(2026, 8, 21), 18 * 60 + 30).getHours()).toBe(18);
+    expect(toDateKey(new Date(2026, 8, 5))).toBe('2026-09-05');
+  });
+
+  it('formats lesson lengths and deadline lead times', () => {
+    expect(formatDuration(45)).toBe('45 min');
+    expect(formatDuration(60)).toBe('1h');
+    expect(formatDuration(90)).toBe('1h30');
+    expect(formatDuration(120)).toBe('2h');
+
+    expect(formatLeadTime(120)).toBe('2 hours');
+    expect(formatLeadTime(60)).toBe('1 hour');
+    expect(formatLeadTime(24 * 60)).toBe('1 day');
+    expect(formatLeadTime(72 * 60)).toBe('3 days');
+  });
+
   it('greets according to the time of day', () => {
     expect(getGreeting(new Date(2026, 8, 21, 8))).toBe('Good morning');
     expect(getGreeting(new Date(2026, 8, 21, 14))).toBe('Good afternoon');
     expect(getGreeting(new Date(2026, 8, 21, 20))).toBe('Good evening');
+  });
+
+  it('formats French dates and times', () => {
+    setDateLocale('fr');
+    const lesson = new Date(2026, 8, 21, 18, 0);
+    expect(formatTime(lesson)).toBe('18 h 00');
+    expect(formatLongDate(lesson, now)).toBe('lundi 21 septembre');
+    expect(getGreeting(new Date(2026, 8, 21, 8))).toBe('Bonjour');
   });
 });

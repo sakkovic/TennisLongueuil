@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { colors, levelColors, radius, spacing } from '@/constants/theme';
+import { useT } from '@/i18n';
 import { getAccountState, type AccountState, type Member } from '@/types/models';
 
 import { AppText } from './AppText';
@@ -38,15 +39,22 @@ export function StatusBadge({ label, tone = 'neutral', icon }: StatusBadgeProps)
   );
 }
 
-const accountStateBadges: Record<AccountState, StatusBadgeProps> = {
-  pending: { label: 'Pending', tone: 'warning', icon: 'hourglass-outline' },
-  active: { label: 'Active', tone: 'success' },
-  deactivated: { label: 'Inactive', tone: 'danger' },
+const accountStateTone: Record<AccountState, Pick<StatusBadgeProps, 'tone' | 'icon'>> = {
+  pending: { tone: 'warning', icon: 'hourglass-outline' },
+  active: { tone: 'success' },
+  deactivated: { tone: 'danger' },
 };
 
 /** Waiting for approval, usable, or deactivated by the coach. */
 export function AccountStateBadge({ member }: { member: Pick<Member, 'active' | 'approved_at'> }) {
-  return <StatusBadge {...accountStateBadges[getAccountState(member)]} />;
+  const t = useT();
+  const state = getAccountState(member);
+  const labels: Record<AccountState, string> = {
+    pending: t('pending'),
+    active: t('active'),
+    deactivated: t('inactive'),
+  };
+  return <StatusBadge label={labels[state]} {...accountStateTone[state]} />;
 }
 
 interface LevelBadgeProps {
@@ -57,19 +65,20 @@ interface LevelBadgeProps {
 
 /** Player level, coloured by rank. Players can see it; only admins can change it. */
 export function LevelBadge({ name, rank, size = 'sm' }: LevelBadgeProps) {
+  const t = useT();
   const palette = levelColors(name ? rank : null);
   const large = size === 'lg';
   return (
     <View
       style={[styles.badge, large && styles.large, { backgroundColor: palette.background }]}
-      accessibilityLabel={name ? `Level: ${name}` : 'Level not assigned yet'}
+      accessibilityLabel={name ? t('levelLabel', { name }) : t('levelUnassigned')}
     >
       <Ionicons name="tennisball" size={large ? 15 : 12} color={palette.text} />
       <AppText
         variant="overline"
         style={[styles.text, large && styles.largeText, { color: palette.text }]}
       >
-        {name ?? 'Level not set'}
+        {name ?? t('levelNotSet')}
       </AppText>
     </View>
   );

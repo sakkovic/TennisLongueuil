@@ -20,12 +20,14 @@ import { useCurrentMember } from '@/features/auth/AuthProvider';
 import { findMyRegistration, getActiveRegistrations } from '@/features/lessons/api';
 import { useLesson, useLessonsRealtime } from '@/features/lessons/hooks';
 import { LessonDetailsHeader } from '@/features/lessons/LessonDetailsHeader';
-import { getLessonAvailability } from '@/features/lessons/lessonState';
+import { AVAILABILITY_LABEL_KEYS, getLessonAvailability } from '@/features/lessons/lessonState';
 import { useCancelRegistration, useJoinLesson } from '@/features/registrations/hooks';
+import { useT } from '@/i18n';
 import { formatDateTime } from '@/utils/date';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 export default function PlayerLessonScreen() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const member = useCurrentMember();
   const lessonQuery = useLesson(id);
@@ -52,11 +54,7 @@ export default function PlayerLessonScreen() {
   const lesson = lessonQuery.data;
   if (!lesson) {
     return (
-      <EmptyState
-        icon="search-outline"
-        title="Lesson not found"
-        message="It may have been removed."
-      />
+      <EmptyState icon="search-outline" title={t('lessonNotFound')} message={t('lessonRemoved')} />
     );
   }
 
@@ -67,13 +65,16 @@ export default function PlayerLessonScreen() {
 
   const handleJoin = () => {
     setFeedback(null);
-    join.mutate(lesson.id, {
-      onSuccess: () => setFeedback({ tone: 'success', text: "You're in! See you on the court." }),
-      onError: (error) => {
-        logError('joinLesson', error);
-        setFeedback({ tone: 'danger', text: getErrorMessage(error) });
+    join.mutate(
+      { lessonId: lesson.id, title: lesson.title, startTime: lesson.start_time },
+      {
+        onSuccess: () => setFeedback({ tone: 'success', text: t('youreIn') }),
+        onError: (error) => {
+          logError('joinLesson', error);
+          setFeedback({ tone: 'danger', text: getErrorMessage(error) });
+        },
       },
-    });
+    );
   };
 
   const handleCancel = () => {
@@ -83,7 +84,7 @@ export default function PlayerLessonScreen() {
         onSuccess: () => {
           setCancelOpen(false);
           setReason('');
-          setFeedback({ tone: 'success', text: 'Your participation has been cancelled.' });
+          setFeedback({ tone: 'success', text: t('participationCancelled') });
         },
         onError: (error) => logError('cancelRegistration', error),
       },
@@ -92,16 +93,16 @@ export default function PlayerLessonScreen() {
 
   const footer = availability.canJoin ? (
     <Button
-      label="Join lesson"
+      label={t('joinLesson')}
       icon="add-circle-outline"
       onPress={handleJoin}
       loading={join.isPending}
     />
   ) : availability.canCancel ? (
     <View style={styles.registeredFooter}>
-      <StatusBadge label="You're registered" tone="success" icon="checkmark-circle" />
+      <StatusBadge label={t('youreRegistered')} tone="success" icon="checkmark-circle" />
       <Button
-        label="Cancel participation"
+        label={t('cancelParticipation')}
         variant="danger"
         onPress={() => {
           setFeedback(null);
@@ -109,9 +110,25 @@ export default function PlayerLessonScreen() {
           setCancelOpen(true);
         }}
       />
+      <AppText variant="caption" tone="muted" style={styles.centered}>
+        {t('cancelUntil', { when: formatDateTime(availability.cancellationClosesAt) })}
+      </AppText>
+    </View>
+  ) : availability.state === 'registered' ? (
+    // Registered, but within 24 hours of the lesson: the spot can no longer be released.
+    <View style={styles.registeredFooter}>
+      <StatusBadge label={t('youreRegistered')} tone="success" icon="checkmark-circle" />
+      <AppText variant="caption" tone="muted" style={styles.centered}>
+        {t('cancellationClosed')}
+      </AppText>
     </View>
   ) : (
-    <Button label={availability.label} onPress={() => undefined} disabled variant="secondary" />
+    <Button
+      label={t(AVAILABILITY_LABEL_KEYS[availability.state])}
+      onPress={() => undefined}
+      disabled
+      variant="secondary"
+    />
   );
 
   return (
@@ -137,27 +154,29 @@ export default function PlayerLessonScreen() {
       </Card>
 
       <Card>
-        <SectionHeader title="Players" count={participants.length} />
+        <SectionHeader title={t('players')} count={participants.length} />
         <ParticipantList participants={participants} currentUserId={member.id} />
       </Card>
 
       {mine?.status === 'cancelled' && mine.cancelled_at ? (
         <Card>
           <AppText variant="label" tone="muted">
-            You cancelled on {formatDateTime(mine.cancelled_at)}.
+            {t('youCancelledOn', { when: formatDateTime(mine.cancelled_at) })}
           </AppText>
           {mine.cancellation_reason ? (
-            <AppText tone="muted">Your reason (private): {mine.cancellation_reason}</AppText>
+            <AppText tone="muted">
+              {t('yourReasonPrivate', { reason: mine.cancellation_reason })}
+            </AppText>
           ) : null}
         </Card>
       ) : null}
 
       <ConfirmationModal
         visible={cancelOpen}
-        title="Cancel participation"
-        message="Your spot will be released so another player can take it."
-        confirmLabel="Confirm cancellation"
-        cancelLabel="Keep registration"
+        title={t('cancelParticipation')}
+        message={t('spotReleased')}
+        confirmLabel={t('confirmCancellation')}
+        cancelLabel={t('keepRegistration')}
         destructive
         loading={cancel.isPending}
         error={cancel.isError ? getErrorMessage(cancel.error) : null}
@@ -165,13 +184,13 @@ export default function PlayerLessonScreen() {
         onCancel={() => setCancelOpen(false)}
       >
         <TextField
-          label="Reason (optional)"
+          label={t('reasonOptional')}
           value={reason}
           onChangeText={setReason}
           multiline
           maxLength={MAX_CANCELLATION_REASON_LENGTH}
-          placeholder="e.g. Work meeting"
-          hint="Only your coach can see this."
+          placeholder={t('reasonPlaceholder')}
+          hint={t('reasonHint')}
         />
       </ConfirmationModal>
     </ScreenContainer>
@@ -181,4 +200,5 @@ export default function PlayerLessonScreen() {
 const styles = StyleSheet.create({
   footer: { gap: spacing.md },
   registeredFooter: { gap: spacing.md, alignItems: 'stretch' },
+  centered: { textAlign: 'center' },
 });

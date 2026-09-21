@@ -12,6 +12,7 @@ import { ScreenContainer } from '@/components/ScreenContainer';
 import { TextField } from '@/components/TextField';
 import { spacing } from '@/constants/theme';
 import { useCurrentMember } from '@/features/auth/AuthProvider';
+import { useT } from '@/i18n';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 import { useUpdateProfile } from './hooks';
@@ -34,6 +35,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 /** Members can edit their name and phone. Email, role and level are not editable here. */
 export function EditProfileScreen() {
+  const t = useT();
   const member = useCurrentMember();
   const updateProfile = useUpdateProfile();
   const { control, handleSubmit, formState } = useForm<ProfileFormValues>({
@@ -53,14 +55,16 @@ export function EditProfileScreen() {
   return (
     <ScreenContainer
       keyboard
-      footer={<Button label="Save changes" onPress={onSubmit} loading={updateProfile.isPending} />}
+      footer={
+        <Button label={t('saveChanges')} onPress={onSubmit} loading={updateProfile.isPending} />
+      }
     >
       <Controller
         control={control}
         name="fullName"
         render={({ field }) => (
           <TextField
-            label="Full name"
+            label={t('fullName')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -75,7 +79,7 @@ export function EditProfileScreen() {
         name="phone"
         render={({ field }) => (
           <TextField
-            label="Phone (optional)"
+            label={t('phoneOptional')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -84,7 +88,7 @@ export function EditProfileScreen() {
             textContentType="telephoneNumber"
             placeholder="+1 514 555 0100"
             error={formState.errors.phone?.message}
-            hint="Only you and your coach can see your phone number."
+            hint={t('phoneHint')}
           />
         )}
       />

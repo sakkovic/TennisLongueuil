@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import type { LessonStatus } from '@/types/models';
 
 import {
-  createLesson,
+  createLessons,
   fetchLesson,
   fetchPastLessons,
   fetchUpcomingLessons,
@@ -86,11 +86,15 @@ export function useLessonsRealtime(lessonId?: string) {
   );
 }
 
+/**
+ * Creates one lesson, a weekly series, or saves an edit. Always resolves to
+ * the ids that were written, oldest first.
+ */
 export function useSaveLesson() {
   const invalidate = useInvalidateLessons();
   return useMutation({
-    mutationFn: ({ lessonId, input }: { lessonId?: string; input: LessonInput }) =>
-      lessonId ? updateLesson(lessonId, input).then(() => lessonId) : createLesson(input),
+    mutationFn: ({ lessonId, inputs }: { lessonId?: string; inputs: LessonInput[] }) =>
+      lessonId ? updateLesson(lessonId, inputs[0]).then(() => [lessonId]) : createLessons(inputs),
     onSettled: invalidate,
   });
 }
