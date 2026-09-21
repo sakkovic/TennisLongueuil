@@ -3,7 +3,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { queryKeys } from '@/lib/queryClient';
 
-import { updateMyProfile, updatePassword, uploadMyAvatar, type ProfileUpdate } from './api';
+import {
+  changePassword,
+  updateMyProfile,
+  updatePassword,
+  uploadMyAvatar,
+  type ProfileUpdate,
+} from './api';
 
 function useInvalidateProfile() {
   const queryClient = useQueryClient();
@@ -41,4 +47,20 @@ export function useUploadAvatar() {
 
 export function useUpdatePassword() {
   return useMutation({ mutationFn: updatePassword });
+}
+
+export function useChangePassword() {
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+    }) => {
+      if (!user?.email) throw new Error('NOT_AUTHENTICATED');
+      return changePassword(user.email, currentPassword, newPassword);
+    },
+  });
 }

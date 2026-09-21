@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
 
+import { getPasswordResetRedirectUrl } from './recoveryLink';
+
 export async function signIn(email: string, password: string): Promise<void> {
   const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
   if (error) throw error;
@@ -10,9 +12,14 @@ export async function signOut(): Promise<void> {
   if (error) throw error;
 }
 
-/** Emails a 6-digit reset code (see supabase/templates/recovery.html). */
+/**
+ * Emails a password-reset link that opens the app (the default Supabase email).
+ * A custom email template can also include a code (see supabase/templates/recovery.html).
+ */
 export async function requestPasswordReset(email: string): Promise<void> {
-  const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: getPasswordResetRedirectUrl(),
+  });
   if (error) throw error;
 }
 

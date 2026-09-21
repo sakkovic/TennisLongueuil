@@ -50,7 +50,37 @@ export async function uploadMyAvatar(userId: string, localUri: string): Promise<
   if (error) throw error;
 }
 
+/** New password after a reset link/code (a recovery session needs no current password). */
 export async function updatePassword(password: string): Promise<void> {
   const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+}
+
+/**
+ * Change the password of a signed-in member.
+ *
+ * Signing in again first proves the current password and starts a fresh
+ * session, which satisfies Supabase's "Secure password change" rule (a login
+ * within the last 24 hours) without an extra email. The current password is
+ * also sent for the "Require current password when updating" setting.
+ */
+export async function changePassword(
+  email: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password: currentPassword,
+  });
+  if (signInError) {
+    throw signInError.code === 'invalid_credentials'
+      ? new Error('CURRENT_PASSWORD_INVALID')
+      : signInError;
+  }
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+    current_password: currentPassword,
+  });
   if (error) throw error;
 }

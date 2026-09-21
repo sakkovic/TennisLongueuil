@@ -51,6 +51,20 @@ describe('getErrorMessage', () => {
     );
   });
 
+  it('explains password change and reset problems', () => {
+    expect(getErrorMessage(new Error('CURRENT_PASSWORD_INVALID'))).toBe(
+      'Your current password is incorrect.',
+    );
+    expect(getErrorMessage({ name: 'AuthApiError', code: 'weak_password', message: 'x' })).toBe(
+      'Please choose a stronger password: at least 8 characters, with uppercase and lowercase letters and a number.',
+    );
+    expect(
+      getErrorMessage({ name: 'AuthApiError', code: 'email_address_not_authorized', message: 'x' }),
+    ).toBe(
+      "Reset emails can't be sent to this address yet. Please ask your coach to reset your password.",
+    );
+  });
+
   it('explains network failures', () => {
     expect(getErrorMessage(new TypeError('Network request failed'))).toBe(
       "Can't reach the server. Check your connection and try again.",

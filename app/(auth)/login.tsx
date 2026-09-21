@@ -22,6 +22,7 @@ import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { colors, radius, spacing } from '@/constants/theme';
 import { signIn } from '@/features/auth/api';
+import { useAuth } from '@/features/auth/AuthProvider';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 const loginSchema = z.object({
@@ -33,6 +34,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
+  const { recoveryError, clearRecoveryError } = useAuth();
   const passwordRef = useRef<TextInput>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -43,6 +45,7 @@ export default function LoginScreen() {
 
   const onSubmit = handleSubmit(async ({ email, password }) => {
     setSubmitError(null);
+    clearRecoveryError();
     try {
       // On success the auth listener routes to the player or admin app.
       await signIn(email, password);
@@ -135,6 +138,7 @@ export default function LoginScreen() {
               )}
             />
 
+            {recoveryError ? <Banner tone="warning" message={recoveryError} /> : null}
             {submitError ? <Banner tone="danger" message={submitError} /> : null}
 
             <Button

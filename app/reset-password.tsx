@@ -6,11 +6,13 @@ import { ScreenHeader } from '@/components/ScreenHeader';
 import { signOut } from '@/features/auth/api';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { NewPasswordForm } from '@/features/auth/NewPasswordForm';
+import { useUpdatePassword } from '@/features/profile/hooks';
 import { logError } from '@/utils/errors';
 
-/** Reached after verifying an emailed reset code. */
+/** Reached from a password-reset email (link or code). */
 export default function ResetPasswordScreen() {
   const { finishPasswordRecovery } = useAuth();
+  const updatePassword = useUpdatePassword();
   const [cancelling, setCancelling] = useState(false);
 
   const cancel = async () => {
@@ -28,9 +30,19 @@ export default function ResetPasswordScreen() {
       <ScreenHeader
         overline="Password reset"
         title="Choose a new password"
-        subtitle="Your code was verified. Pick a new password to finish."
+        subtitle="Your reset was verified. Pick a new password to finish."
       />
-      <NewPasswordForm submitLabel="Save new password" onSuccess={finishPasswordRecovery} />
+      <NewPasswordForm
+        submitLabel="Save new password"
+        submitting={updatePassword.isPending}
+        error={updatePassword.error}
+        onSubmit={({ newPassword }) =>
+          updatePassword.mutate(newPassword, {
+            onSuccess: finishPasswordRecovery,
+            onError: (error) => logError('updatePassword', error),
+          })
+        }
+      />
       <Button label="Cancel" variant="ghost" onPress={cancel} loading={cancelling} />
     </ScreenContainer>
   );

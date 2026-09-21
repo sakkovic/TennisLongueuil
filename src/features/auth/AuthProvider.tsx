@@ -1,11 +1,13 @@
 import type { Session, User } from '@supabase/supabase-js';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Linking from 'expo-linking';
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -14,6 +16,9 @@ import { fetchMyProfile } from '@/features/profile/api';
 import { queryKeys } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
 import type { Member } from '@/types/models';
+import { getErrorMessage, logError } from '@/utils/errors';
+
+import { parseRecoveryLink } from './recoveryLink';
 
 /**
  * Where the member is in the app lifecycle. The root navigator maps each
@@ -22,7 +27,7 @@ import type { Member } from '@/types/models';
 export type AppStatus =
   | 'restoring' // reading the stored session
   | 'signedOut'
-  | 'passwordRecovery' // signed in with a reset code; must choose a new password
+  | 'passwordRecovery' // signed in from a reset link or code; must choose a new password
   | 'loadingProfile'
   | 'profileError'
   | 'profileMissing'
@@ -40,6 +45,9 @@ interface AuthContextValue {
   retryProfile: () => void;
   isRetryingProfile: boolean;
   finishPasswordRecovery: () => void;
+  /** Problem with a password-reset link (e.g. expired), shown on the login screen. */
+  recoveryError: string | null;
+  clearRecoveryError: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -49,6 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [restoring, setRestoring] = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const [initialLinkChecked, setInitialLinkChecked] = useState(false);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
+  const handledLinks = useRef(new Set<string>());
 
   useEffect(() => {
     // INITIAL_SESSION fires once the stored session has been read.
@@ -65,6 +76,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => data.subscription.unsubscribe();
   }, [queryClient]);
 
+  // Password-reset emails link back into the app with a recovery session in the URL.
+  useEffect(() => {
+    let active = true;
+    const handleLink = async (url: string | null) => {
+      if (!url || handledLinks.current.has(url)) return;
+      const result = parseRecoveryLink(url);
+      if (!result) return;
+      handledLinks.current.add(url);
+      if (result.kind === 'error') {
+        setRecoveryError(result.message);
+        return;
+      }
+      setRecoveryError(null);
+      setPasswordRecovery(true);
+      const { error } = await supabase.auth.setSession({
+        access_token: result.accessToken,
+        refresh_token: result.refreshToken,
+      });
+      if (error) {
+        logError('recoveryLink', error);
+        setPasswordRecovery(false);
+        setRecoveryError(getErrorMessage(error));
+      }
+    };
+
+    void Linking.getInitialURL()
+      .then(handleLink)
+      .finally(() => {
+        if (active) setInitialLinkChecked(true);
+      });
+    const subscription = Linking.addEventListener('url', ({ url }) => void handleLink(url));
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, []);
+
   const userId = session?.user.id;
   const profileQuery = useQuery({
     queryKey: queryKeys.myProfile(userId),
@@ -79,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   if (profile && profile !== lastKnownProfile) setLastKnownProfile(profile);
 
   const status: AppStatus = useMemo(() => {
-    if (restoring) return 'restoring';
+    if (restoring || !initialLinkChecked) return 'restoring';
     if (!session) return 'signedOut';
     if (passwordRecovery) return 'passwordRecovery';
     if (profileQuery.data === undefined) {
@@ -88,13 +136,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!profile) return 'profileMissing';
     if (!profile.active) return 'inactive';
     return profile.role === 'admin' ? 'admin' : 'player';
-  }, [restoring, session, passwordRecovery, profileQuery.data, profileQuery.isError, profile]);
+  }, [
+    restoring,
+    initialLinkChecked,
+    session,
+    passwordRecovery,
+    profileQuery.data,
+    profileQuery.isError,
+    profile,
+  ]);
 
   const { refetch } = profileQuery;
   const retryProfile = useCallback(() => {
     void refetch();
   }, [refetch]);
   const finishPasswordRecovery = useCallback(() => setPasswordRecovery(false), []);
+  const clearRecoveryError = useCallback(() => setRecoveryError(null), []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -107,6 +164,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       retryProfile,
       isRetryingProfile: profileQuery.isFetching,
       finishPasswordRecovery,
+      recoveryError,
+      clearRecoveryError,
     }),
     [
       status,
@@ -117,6 +176,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profileQuery.isFetching,
       retryProfile,
       finishPasswordRecovery,
+      recoveryError,
+      clearRecoveryError,
     ],
   );
 

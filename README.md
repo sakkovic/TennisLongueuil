@@ -31,7 +31,7 @@ There is no custom backend server. Supabase is the backend and the source of tru
 app/                         Expo Router routes (screens only)
 ├── _layout.tsx              Providers + role-based route guards
 ├── account-status.tsx       Loading / inactive account / profile errors
-├── reset-password.tsx       "Choose a new password" after a reset code
+├── reset-password.tsx       "Choose a new password" after a reset link or code
 ├── (auth)/                  login, forgot-password
 ├── (player)/                Player app
 │   ├── (tabs)/              Home · My Lessons · Profile
@@ -58,10 +58,10 @@ src/
 └── utils/                   Dates (DST-safe), capacity text, friendly error messages
 
 supabase/
-├── config.toml              Local stack config (sign-ups disabled, reset-code email)
+├── config.toml              Local stack config (mirrors the hosted auth settings)
 ├── migrations/              Reproducible schema, RLS, RPC functions, storage, realtime
 ├── seed.sql                 Local demo data (never pushed to production)
-├── templates/recovery.html  Password-reset email containing a 6-digit code
+├── templates/recovery.html  Password-reset email with a link and a code (needs custom SMTP when hosted)
 └── tests/                   Database tests: capacity, concurrency, RLS, privacy
 ```
 
@@ -113,9 +113,12 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 3. **Authentication → Sign In / Providers**
    - Turn **off** "Allow new users to sign up" (private club: the coach creates accounts).
    - Keep the **Email** provider **enabled** (members sign in with email and password).
-4. **Authentication → Emails → Reset Password**: set the subject to `Your Tennis Longueuil password reset code` and paste the content of `supabase/templates/recovery.html`. It contains `{{ .Token }}`, the 6-digit code players type in the app. This works identically in Expo Go and store builds, with no deep-link setup.
-5. **Authentication → Emails → SMTP Settings**: configure your own SMTP server before real use. Supabase's built-in email sender is heavily rate-limited and meant for testing.
-6. Put the project URL and publishable key in `.env`.
+4. **Authentication → Email provider settings** used by the app:
+   - **Password requirements**: "Lowercase, uppercase letters and digits". Set **Minimum password length** to **8** to match the app's rules.
+   - **Require current password when updating** and **Secure password change** can stay on. The app asks for the current password and signs the member in again before changing it, which satisfies both.
+5. **Authentication → URL Configuration → Redirect URLs**: add `tennislongueuil://**` (installed app) and `exp://**` (Expo Go). Password-reset emails contain a link that opens the app on "Choose a new password". Without these entries the link opens a broken web page. Players should open the email **on their phone**.
+6. **Email delivery (important):** Supabase's built-in email service only delivers to members of your Supabase organization, and is heavily rate-limited. Players will **not** receive password-reset emails until you configure your own SMTP server (**Authentication → Emails → SMTP Settings**; e.g. Resend, Brevo, or a Gmail app password). With custom SMTP you can also use `supabase/templates/recovery.html` as the Reset Password template (link **and** code). Until then, the coach can set a temporary password (see "Reset a player's password" below).
+7. Put the project URL and publishable key in `.env`, then start the app with `npx expo start --clear` (`--clear` makes sure the new values are used).
 
 ### Create the first admin (coach)
 
@@ -134,10 +137,23 @@ The role can **only** be changed like this (by the project owner). It is never r
 
 Dashboard → **Authentication → Users → Add user** (email + temporary password, **Auto Confirm User**). Give the player their credentials. They can:
 
-- change their password in **Profile → Change password**, or
-- use **Forgot your password?** on the login screen to receive a code by email.
+- change their password in **Profile → Change password** (they need their current password), or
+- use **Forgot your password?** on the login screen and tap the link in the email (requires custom SMTP, see above).
 
 New players appear immediately in the coach's **Members** tab, where the coach assigns their level. Players can edit their own name, phone and photo.
+
+### Reset a player's password (without email)
+
+In **SQL Editor**, set a temporary password and give it to the player, who then changes it in **Profile → Change password**:
+
+```sql
+update auth.users
+   set encrypted_password = extensions.crypt('Temporary2026', extensions.gen_salt('bf')),
+       updated_at = now()
+ where email = 'player@example.com';
+```
+
+The temporary password must follow the password rules (8+ characters, uppercase, lowercase and a digit).
 
 ---
 
@@ -209,7 +225,9 @@ Local native builds are also possible: `npx expo run:android` (Android Studio) a
 - Email + password with Supabase Auth. **Public sign-up is disabled**; the coach creates every account.
 - The session is stored encrypted in the Keychain/Keystore (`expo-secure-store`). It is split into chunks because SecureStore values must stay under about 2 KB.
 - On launch: session → profile → active? → role → player app or coach app. Inactive accounts see "Your account is inactive" and cannot read any data (enforced by RLS).
-- Forgot password: request a code by email, type the 6-digit code, choose a new password.
+- Forgot password: the member requests a reset email and taps its link on their phone. The app opens on "Choose a new password" with a short-lived recovery session. If the email contains a code (custom template), it can be typed instead.
+- Change password: the member enters their current password; the app signs in again with it, then updates the password.
+- Password rules (checked in the app and enforced by Supabase Auth): at least 8 characters, with uppercase and lowercase letters and a digit.
 
 ### Player levels
 

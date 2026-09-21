@@ -25,6 +25,7 @@ const BUSINESS_MESSAGES: Record<string, string> = {
   MEMBER_NOT_FOUND: 'This member could not be found.',
   INVALID_LEVEL: 'Please choose a valid level.',
   CANNOT_DEACTIVATE_SELF: "You can't deactivate your own account.",
+  CURRENT_PASSWORD_INVALID: 'Your current password is incorrect.',
 };
 
 const CONSTRAINT_MESSAGES: Record<string, string> = {
@@ -47,7 +48,13 @@ const AUTH_MESSAGES: Record<string, string> = {
   email_not_confirmed: 'Your email address has not been confirmed yet.',
   user_banned: 'Your account is inactive. Please contact your coach.',
   otp_expired: 'This code is invalid or has expired. Request a new one.',
-  weak_password: 'Please choose a stronger password (at least 8 characters).',
+  weak_password:
+    'Please choose a stronger password: at least 8 characters, with uppercase and lowercase letters and a number.',
+  current_password_invalid: 'Your current password is incorrect.',
+  current_password_required: 'Please enter your current password.',
+  reauthentication_needed: 'For your security, please sign out, sign in again, then retry.',
+  email_address_not_authorized:
+    "Reset emails can't be sent to this address yet. Please ask your coach to reset your password.",
   same_password: 'Your new password must be different from your current one.',
   over_request_rate_limit: 'Too many attempts. Please wait a moment and try again.',
   over_email_send_rate_limit: 'Too many emails sent. Please wait a few minutes and try again.',
