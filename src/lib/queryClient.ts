@@ -27,6 +27,7 @@ if (Platform.OS !== 'web') {
 export const queryKeys = {
   myProfile: (userId: string | undefined) => ['profile', 'me', userId] as const,
   levels: ['levels'] as const,
+  publicSessions: ['public-sessions'] as const,
   lessons: ['lessons'] as const,
   upcomingLessons: ['lessons', 'upcoming'] as const,
   pastLessons: ['lessons', 'past'] as const,

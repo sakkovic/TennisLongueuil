@@ -241,6 +241,18 @@ export type Database = {
         }
       }
       join_lesson: { Args: { p_lesson_id: string }; Returns: Json }
+      upcoming_sessions: {
+        Args: { p_limit?: number }
+        Returns: {
+          capacity: number
+          end_time: string
+          id: string
+          location: string
+          registered_count: number
+          registration_closes_at: string
+          start_time: string
+        }[]
+      }
     }
     Enums: {
       lesson_status: "scheduled" | "cancelled" | "completed"

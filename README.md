@@ -12,7 +12,8 @@ The coach creates lessons. Players see them, join with one tap, see who else is 
 ### Branding
 
 - Dark + aqua theme sampled from the SaKKa.Tennis artwork in `assets/sakkatennis_*.png`. All colours, fonts (Playfair Display for the wordmark and headings) and spacing live in `src/constants/theme.ts`.
-- The club offer shown on the home screen (coach, CP1, session length, price) lives in `src/constants/brand.ts`.
+- The home screens open with a flyer-style landing (`src/features/home/SessionPoster.tsx`): emblem over a court drawing, the wordmark, "120-minute sessions", the location, the next sessions with spots left, the price and one big call to action. Visitors see it before signing in (`app/(auth)/welcome.tsx`), players on Home, and the coach on the coach home.
+- The club offer (coach, CP1, session length, price) lives in `src/constants/brand.ts`.
 - App icon, Android adaptive icon, splash and the in-app emblem (`assets/brand/emblem.png`) were generated from the emblem artwork.
 
 ---
@@ -39,7 +40,7 @@ app/                         Expo Router routes (screens only)
 ├── _layout.tsx              Providers + role-based route guards
 ├── account-status.tsx       Loading / waiting for approval / inactive account / profile errors
 ├── reset-password.tsx       "Choose a new password" after a reset link or code
-├── (auth)/                  login, sign-up, forgot-password
+├── (auth)/                  welcome (flyer landing), login, sign-up, forgot-password
 ├── (player)/                Player app
 │   ├── (tabs)/              Home · My Lessons · Profile
 │   ├── lesson/[id].tsx      Lesson details (join, cancel, participants)
@@ -286,6 +287,7 @@ RLS is enabled on every table. The app's UI guards are only for convenience; **e
 | `lesson_registrations`               | Read own rows (incl. own reason) and other players' **active** rows only. No direct writes.                                                                                                            | Read all rows, including cancellation reasons.                                                   |
 | `join_lesson`, `cancel_registration` | Only for themselves (`auth.uid()`); no user id parameter exists                                                                                                                                        | Same                                                                                             |
 | `admin_*` functions                  | Rejected with `NOT_AUTHORIZED`                                                                                                                                                                         | Allowed (cannot deactivate own account)                                                          |
+| `upcoming_sessions()`                | Anyone, even signed out: the next 3–6 scheduled sessions (time, location, capacity, spots taken). No names or registrations. Powers the welcome flyer.                                                 | Same                                                                                             |
 | `avatars` bucket                     | Write only `avatars/<own user id>/profile.jpg` (JPEG/PNG/WebP, max 2 MB). Photos are readable by URL.                                                                                                  | Same (no access to other members' files)                                                         |
 
 Key design points:

@@ -12,7 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
 import { AppText } from '@/components/AppText';
@@ -34,7 +34,6 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
-  const insets = useSafeAreaInsets();
   const t = useT();
   const { recoveryError, clearRecoveryError } = useAuth();
   const passwordRef = useRef<TextInput>(null);
@@ -64,7 +63,7 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <View style={[styles.hero, { paddingTop: insets.top + spacing.xxl }]}>
+          <View style={styles.hero}>
             <BrandMark layout="stacked" size="lg" subtitle={t('brandTagline')} />
             <AppText tone="muted" style={styles.tagline}>
               {t('loginTagline')}
@@ -176,6 +175,7 @@ const styles = StyleSheet.create({
   hero: {
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
     paddingBottom: spacing.md,
     gap: spacing.md,
   },

@@ -5,13 +5,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Banner } from '@/components/Banner';
-import { BrandMark } from '@/components/BrandMark';
-import { Button } from '@/components/Button';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { SectionHeader } from '@/components/SectionHeader';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
 import { colors, radius, shadow, spacing } from '@/constants/theme';
 import { useCurrentMember } from '@/features/auth/AuthProvider';
+import { slotsFromLessons } from '@/features/home/posterSessions';
+import { SessionPoster } from '@/features/home/SessionPoster';
 import { useLessonsRealtime, useUpcomingLessons } from '@/features/lessons/hooks';
 import { LessonCard } from '@/features/lessons/LessonCard';
 import { useMembers } from '@/features/members/hooks';
@@ -39,9 +39,9 @@ export default function AdminHomeScreen() {
 
   return (
     <ScreenContainer edges={['top']} onRefresh={refresh} refreshing={lessons.isRefetching}>
-      <BrandMark
-        subtitle={`${getGreeting()}, ${firstName(member.full_name)} · ${t('homeSubtitle')}`}
-      />
+      <AppText variant="overline" tone="muted">
+        {`${getGreeting()}, ${firstName(member.full_name)}`}
+      </AppText>
 
       {pendingCount > 0 ? (
         <Pressable
@@ -60,10 +60,16 @@ export default function AdminHomeScreen() {
         </Pressable>
       ) : null}
 
-      <Button
-        label={t('createLesson')}
-        icon="add-circle-outline"
-        onPress={() => router.push('/admin/lesson/new')}
+      {/* The same landing page players see, with the coach's main action. */}
+      <SessionPoster
+        slots={slotsFromLessons(lessons.data ?? [], undefined)}
+        loading={lessons.isPending}
+        onPressSlot={(id) => router.push({ pathname: '/admin/lesson/[id]', params: { id } })}
+        primaryAction={{
+          label: t('createALesson'),
+          icon: 'add-circle',
+          onPress: () => router.push('/admin/lesson/new'),
+        }}
       />
 
       <View style={styles.stats}>

@@ -49,6 +49,11 @@ export const colors = {
   infoSoft: '#11223A',
 
   overlay: 'rgba(0, 0, 0, 0.65)',
+  /** Faint aqua lines of the court drawing on the home poster. */
+  courtLine: 'rgba(30, 207, 203, 0.22)',
+  /** Soft aqua halo behind the emblem. */
+  glow: 'rgba(30, 207, 203, 0.10)',
+  glowFaint: 'rgba(30, 207, 203, 0.05)',
 } as const;
 
 export const spacing = {
