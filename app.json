@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Tennis Longueuil",
+    "slug": "tennis-longueuil",
+    "version": "1.0.0",
+    "scheme": "tennislongueuil",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ca.tennislongueuil.app"
+    },
+    "android": {
+      "package": "ca.tennislongueuil.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0E4D2E",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-image",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#0E4D2E"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Tennis Longueuil uses your photos so you can choose a profile picture.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      "expo-status-bar",
+      "expo-font",
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -1,0 +1,6 @@
+# Keep LF line endings on every platform (Prettier and SQL tooling expect LF).
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ttf binary
