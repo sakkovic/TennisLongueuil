@@ -31,7 +31,8 @@ export type AppStatus =
   | 'loadingProfile'
   | 'profileError'
   | 'profileMissing'
-  | 'inactive'
+  | 'pendingApproval' // signed up, waiting for the coach to approve the account
+  | 'inactive' // approved once, then deactivated by the coach
   | 'player'
   | 'admin';
 
@@ -134,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return profileQuery.isError ? 'profileError' : 'loadingProfile';
     }
     if (!profile) return 'profileMissing';
-    if (!profile.active) return 'inactive';
+    if (!profile.active) return profile.approved_at ? 'inactive' : 'pendingApproval';
     return profile.role === 'admin' ? 'admin' : 'player';
   }, [
     restoring,

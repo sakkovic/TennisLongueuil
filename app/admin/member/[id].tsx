@@ -19,8 +19,46 @@ import { PlayerProfileCard } from '@/features/profile/PlayerProfileCard';
 import { splitRegistrations } from '@/features/registrations/api';
 import { useMemberRegistrations } from '@/features/registrations/hooks';
 import { RegistrationRow } from '@/features/registrations/RegistrationRow';
-import type { PlayerLevel } from '@/types/models';
+import { getAccountState, type AccountState, type PlayerLevel } from '@/types/models';
 import { getErrorMessage, logError } from '@/utils/errors';
+
+const accountSummary: Record<AccountState, string> = {
+  pending:
+    'This player signed up and is waiting for your approval. Until you approve them they cannot see lessons or join.',
+  active: 'This account is active and can sign in.',
+  deactivated: 'This account is inactive and cannot use the app.',
+};
+
+const accountAction: Record<AccountState, string> = {
+  pending: 'Approve member',
+  active: 'Deactivate account',
+  deactivated: 'Reactivate account',
+};
+
+interface ConfirmCopy {
+  title: string;
+  message: (name: string) => string;
+  confirmLabel: string;
+}
+
+const confirmCopy: Record<AccountState, ConfirmCopy> = {
+  pending: {
+    title: 'Approve this member?',
+    message: (name) => `${name} will be able to sign in, see lessons and join them.`,
+    confirmLabel: 'Approve',
+  },
+  active: {
+    title: 'Deactivate this account?',
+    message: (name) =>
+      `${name} will no longer be able to use the app, and their registrations for lessons that have not started will be cancelled to free the spots.`,
+    confirmLabel: 'Deactivate',
+  },
+  deactivated: {
+    title: 'Reactivate this account?',
+    message: (name) => `${name} will be able to sign in and join lessons again.`,
+    confirmLabel: 'Reactivate',
+  },
+};
 
 export default function MemberDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,7 +71,7 @@ export default function MemberDetailScreen() {
   // Choices are kept while their sheet animates closed, so the text never flips.
   const [levelChoice, setLevelChoice] = useState<PlayerLevel | null>(null);
   const [levelSheetOpen, setLevelSheetOpen] = useState(false);
-  const [activeTarget, setActiveTarget] = useState(false);
+  const [sheetState, setSheetState] = useState<AccountState>('active');
   const [activeSheetOpen, setActiveSheetOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -51,6 +89,7 @@ export default function MemberDetailScreen() {
   if (!member) return <EmptyState icon="person-outline" title="Member not found" />;
 
   const isSelf = member.id === me.id;
+  const state = getAccountState(member);
   const upcoming = splitRegistrations(registrations.data ?? []).upcoming;
   const levelOptions = (levels ?? [])
     .filter((level) => level.active)
@@ -82,9 +121,12 @@ export default function MemberDetailScreen() {
   const openActiveSheet = () => {
     setFeedback(null);
     setActive.reset();
-    setActiveTarget(!member.active);
+    setSheetState(state);
     setActiveSheetOpen(true);
   };
+
+  const sheet = confirmCopy[sheetState];
+  const activeTarget = sheetState !== 'active';
 
   const confirmActiveChange = () => {
     setActive.mutate(
@@ -93,7 +135,11 @@ export default function MemberDetailScreen() {
         onSuccess: (result) => {
           setActiveSheetOpen(false);
           if (result.active) {
-            setFeedback('Account reactivated.');
+            setFeedback(
+              result.approved
+                ? `${member.full_name} is approved and can now join lessons.`
+                : 'Account reactivated.',
+            );
             return;
           }
           const n = result.cancelled_registrations;
@@ -158,19 +204,15 @@ export default function MemberDetailScreen() {
 
       <Card>
         <SectionHeader title="Account" />
-        <AppText tone="muted">
-          {member.active
-            ? 'This account is active and can sign in.'
-            : 'This account is inactive and cannot use the app.'}
-        </AppText>
+        <AppText tone="muted">{accountSummary[state]}</AppText>
         {isSelf ? (
           <AppText variant="caption" tone="subtle">
             You can&apos;t deactivate your own account.
           </AppText>
         ) : (
           <Button
-            label={member.active ? 'Deactivate account' : 'Reactivate account'}
-            icon={member.active ? 'lock-closed-outline' : 'lock-open-outline'}
+            label={accountAction[state]}
+            icon={member.active ? 'lock-closed-outline' : 'checkmark-circle-outline'}
             variant={member.active ? 'danger' : 'primary'}
             onPress={openActiveSheet}
           />
@@ -211,13 +253,9 @@ export default function MemberDetailScreen() {
 
       <ConfirmationModal
         visible={activeSheetOpen}
-        title={activeTarget ? 'Reactivate this account?' : 'Deactivate this account?'}
-        message={
-          activeTarget
-            ? `${member.full_name} will be able to sign in and join lessons again.`
-            : `${member.full_name} will no longer be able to use the app, and their registrations for lessons that have not started will be cancelled to free the spots.`
-        }
-        confirmLabel={activeTarget ? 'Reactivate' : 'Deactivate'}
+        title={sheet.title}
+        message={sheet.message(member.full_name)}
+        confirmLabel={sheet.confirmLabel}
         destructive={!activeTarget}
         loading={setActive.isPending}
         error={setActive.isError ? getErrorMessage(setActive.error) : null}

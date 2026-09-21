@@ -4,18 +4,20 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
-import { LevelBadge, StatusBadge } from '@/components/Badges';
+import { AccountStateBadge, LevelBadge, StatusBadge } from '@/components/Badges';
+import { Banner } from '@/components/Banner';
 import { Card } from '@/components/Card';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { SectionHeader } from '@/components/SectionHeader';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
 import { TextField } from '@/components/TextField';
 import { colors, spacing } from '@/constants/theme';
 import { findLevel, useLevels } from '@/features/levels/hooks';
-import { filterMembers } from '@/features/members/api';
+import { filterMembers, groupMembers } from '@/features/members/api';
 import { useMembers } from '@/features/members/hooks';
-import type { Member } from '@/types/models';
+import { getAccountState, type AccountState, type Member } from '@/types/models';
 
 export default function MembersScreen() {
   const members = useMembers();
@@ -23,8 +25,17 @@ export default function MembersScreen() {
   const [search, setSearch] = useState('');
 
   const all = members.data ?? [];
-  const filtered = filterMembers(all, search);
+  const { pending, approved } = groupMembers(filterMembers(all, search));
   const activeCount = all.filter((m) => m.active).length;
+  const pendingCount = groupMembers(all).pending.length;
+
+  const renderRow = (member: Member) => (
+    <MemberRow
+      key={member.id}
+      member={member}
+      levelRank={findLevel(levels, member.player_level_id)?.rank}
+    />
+  );
 
   return (
     <ScreenContainer
@@ -36,6 +47,12 @@ export default function MembersScreen() {
         title="Members"
         subtitle={members.data ? `${activeCount} active · ${all.length} total` : undefined}
       />
+      {pendingCount > 0 ? (
+        <Banner
+          tone="warning"
+          message={`${pendingCount} ${pendingCount === 1 ? 'person is' : 'people are'} waiting for your approval.`}
+        />
+      ) : null}
       <TextField
         label="Search"
         value={search}
@@ -55,34 +72,49 @@ export default function MembersScreen() {
           onRetry={() => void members.refetch()}
           retrying={members.isRefetching}
         />
-      ) : filtered.length === 0 ? (
+      ) : pending.length + approved.length === 0 ? (
         <EmptyState icon="people-outline" title="No players found." />
       ) : (
-        filtered.map((member) => (
-          <MemberRow
-            key={member.id}
-            member={member}
-            levelRank={findLevel(levels, member.player_level_id)?.rank}
-          />
-        ))
+        <>
+          {pending.length > 0 ? (
+            <>
+              <SectionHeader title="Waiting for approval" count={pending.length} />
+              {pending.map(renderRow)}
+            </>
+          ) : null}
+          {approved.length > 0 ? (
+            <>
+              {pending.length > 0 ? (
+                <SectionHeader title="Members" count={approved.length} />
+              ) : null}
+              {approved.map(renderRow)}
+            </>
+          ) : null}
+        </>
       )}
 
       <AppText variant="caption" tone="subtle" style={styles.note}>
-        To add a player, create their account in the Supabase dashboard (Authentication → Add user).
-        They appear here automatically.
+        Players create their own account in the app. Open a pending member to approve them, which
+        lets them see lessons and join.
       </AppText>
     </ScreenContainer>
   );
 }
 
+const stateLabels: Record<AccountState, string> = {
+  pending: 'waiting for approval',
+  active: 'active',
+  deactivated: 'inactive',
+};
+
 function MemberRow({ member, levelRank }: { member: Member; levelRank?: number }) {
+  const state = getAccountState(member);
   return (
     <Card
       onPress={() => router.push({ pathname: '/admin/member/[id]', params: { id: member.id } })}
-      accessibilityLabel={`${member.full_name}, ${member.player_level_name ?? 'no level'}, ${
-        member.active ? 'active' : 'inactive'
-      }`}
-      style={!member.active ? styles.inactive : undefined}
+      accessibilityLabel={`${member.full_name}, ${member.player_level_name ?? 'no level'}, ${stateLabels[state]}`}
+      // Pending sign-ups stay at full contrast: they need the coach's attention.
+      style={state === 'deactivated' ? styles.inactive : undefined}
     >
       <View style={styles.row}>
         <PlayerAvatar
@@ -101,10 +133,7 @@ function MemberRow({ member, levelRank }: { member: Member; levelRank?: number }
             ) : (
               <LevelBadge name={member.player_level_name} rank={levelRank} />
             )}
-            <StatusBadge
-              label={member.active ? 'Active' : 'Inactive'}
-              tone={member.active ? 'success' : 'danger'}
-            />
+            <AccountStateBadge member={member} />
           </View>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.textSubtle} />

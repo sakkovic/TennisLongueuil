@@ -8,6 +8,7 @@
 --   coach@tennis.local     (admin)
 --   mohamed@tennis.local   alice@tennis.local   zdenek@tennis.local
 --   maelys@tennis.local    samuel@tennis.local
+--   julie@tennis.local     (pending sign-up, waiting for the coach's approval)
 -- =============================================================================
 
 do $$
@@ -21,7 +22,8 @@ begin
       ('00000000-0000-4000-a000-000000000003'::uuid, 'alice@tennis.local',   'Alice Smith'),
       ('00000000-0000-4000-a000-000000000004'::uuid, 'zdenek@tennis.local',  'Zdenek Novak'),
       ('00000000-0000-4000-a000-000000000005'::uuid, 'maelys@tennis.local',  'Maëlys Tremblay'),
-      ('00000000-0000-4000-a000-000000000006'::uuid, 'samuel@tennis.local',  'Samuel Roy')
+      ('00000000-0000-4000-a000-000000000006'::uuid, 'samuel@tennis.local',  'Samuel Roy'),
+      ('00000000-0000-4000-a000-000000000007'::uuid, 'julie@tennis.local',   'Julie Bergeron')
     ) as t(id, email, full_name)
   loop
     insert into auth.users (
@@ -46,7 +48,13 @@ begin
 end;
 $$;
 
--- The on_auth_user_created trigger created the profiles. Promote the coach.
+-- The on_auth_user_created trigger created the profiles, all pending approval.
+-- Approve everyone except Julie, who demonstrates the coach's approval queue.
+update public.profiles
+   set active = true, approved_at = now()
+ where id <> '00000000-0000-4000-a000-000000000007';
+
+-- Promote the coach.
 update public.profiles set role = 'admin'
  where id = '00000000-0000-4000-a000-000000000001';
 

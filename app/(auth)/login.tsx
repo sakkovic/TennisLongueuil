@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -77,7 +77,7 @@ export default function LoginScreen() {
 
           <View style={styles.form}>
             <AppText variant="title">Welcome back</AppText>
-            <AppText tone="muted">Sign in with the account your coach created for you.</AppText>
+            <AppText tone="muted">Sign in to see your upcoming lessons.</AppText>
 
             <Controller
               control={control}
@@ -156,8 +156,15 @@ export default function LoginScreen() {
               </Pressable>
             </Link>
 
+            <Button
+              label="Create an account"
+              variant="secondary"
+              onPress={() => router.push('/sign-up')}
+            />
+
             <AppText variant="caption" tone="subtle" style={styles.footnote}>
-              This is a private club app. New accounts are created by your coach.
+              This is a private club app. Your coach approves every new account before you can see
+              lessons.
             </AppText>
           </View>
         </ScrollView>

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { toMember, type Member, type SetMemberActiveResult } from '@/types/models';
+import { getAccountState, toMember, type Member, type SetMemberActiveResult } from '@/types/models';
 
 /** Admin only: the database function rejects other callers with NOT_AUTHORIZED. */
 export async function fetchMembers(): Promise<Member[]> {
@@ -45,4 +45,18 @@ export function filterMembers(members: Member[], search: string): Member[] {
       member.full_name.toLocaleLowerCase().includes(query) ||
       member.email.toLocaleLowerCase().includes(query),
   );
+}
+
+/**
+ * Sign-ups waiting for approval need the coach's attention, so they are shown
+ * first and separately. `admin_list_members` already returns them first, and
+ * both groups keep that order.
+ */
+export function groupMembers(members: Member[]): { pending: Member[]; approved: Member[] } {
+  const pending: Member[] = [];
+  const approved: Member[] = [];
+  for (const member of members) {
+    (getAccountState(member) === 'pending' ? pending : approved).push(member);
+  }
+  return { pending, approved };
 }

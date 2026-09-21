@@ -34,6 +34,7 @@ const GATE_STATUSES: AppStatus[] = [
   'loadingProfile',
   'profileError',
   'profileMissing',
+  'pendingApproval',
   'inactive',
 ];
 

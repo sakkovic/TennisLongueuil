@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
-import { LevelBadge, StatusBadge } from '@/components/Badges';
+import { AccountStateBadge, LevelBadge, StatusBadge } from '@/components/Badges';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { colors, radius, shadow, spacing } from '@/constants/theme';
 import type { Member } from '@/types/models';
@@ -72,12 +72,7 @@ export function PlayerProfileCard({
         <AppText tone="muted" style={styles.center}>
           {isCoach ? '🎾 Coach · Administrator' : '🎾 Tennis Member'}
         </AppText>
-        {showStatus || !member.active ? (
-          <StatusBadge
-            label={member.active ? 'Active' : 'Inactive'}
-            tone={member.active ? 'success' : 'danger'}
-          />
-        ) : null}
+        {showStatus || !member.active ? <AccountStateBadge member={member} /> : null}
       </View>
 
       <View style={styles.details}>

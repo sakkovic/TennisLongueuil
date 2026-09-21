@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { colors, levelColors, radius, spacing } from '@/constants/theme';
+import { getAccountState, type AccountState, type Member } from '@/types/models';
 
 import { AppText } from './AppText';
 
@@ -35,6 +36,17 @@ export function StatusBadge({ label, tone = 'neutral', icon }: StatusBadgeProps)
       </AppText>
     </View>
   );
+}
+
+const accountStateBadges: Record<AccountState, StatusBadgeProps> = {
+  pending: { label: 'Pending', tone: 'warning', icon: 'hourglass-outline' },
+  active: { label: 'Active', tone: 'success' },
+  deactivated: { label: 'Inactive', tone: 'danger' },
+};
+
+/** Waiting for approval, usable, or deactivated by the coach. */
+export function AccountStateBadge({ member }: { member: Pick<Member, 'active' | 'approved_at'> }) {
+  return <StatusBadge {...accountStateBadges[getAccountState(member)]} />;
 }
 
 interface LevelBadgeProps {

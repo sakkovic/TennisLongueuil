@@ -17,9 +17,23 @@ export interface Member {
   player_level_id: number | null;
   player_level_name: string | null;
   active: boolean;
+  /** When the coach first approved the account. NULL means it is still pending. */
+  approved_at: string | null;
   created_at: string;
   updated_at: string;
   upcoming_lessons_count: number;
+}
+
+/**
+ * An account is unusable both before the coach approves it and after they
+ * deactivate it. `approved_at` tells the two apart, so each one gets its own
+ * explanation instead of a single confusing "inactive".
+ */
+export type AccountState = 'pending' | 'active' | 'deactivated';
+
+export function getAccountState(member: Pick<Member, 'active' | 'approved_at'>): AccountState {
+  if (member.active) return 'active';
+  return member.approved_at ? 'deactivated' : 'pending';
 }
 
 type MemberDetailsRow = Database['public']['CompositeTypes']['member_details'];
@@ -36,6 +50,7 @@ export function toMember(row: MemberDetailsRow): Member {
     player_level_id: row.player_level_id,
     player_level_name: row.player_level_name,
     active: row.active ?? false,
+    approved_at: row.approved_at,
     created_at: row.created_at ?? '',
     updated_at: row.updated_at ?? '',
     upcoming_lessons_count: row.upcoming_lessons_count ?? 0,
@@ -56,5 +71,7 @@ export interface RegistrationResult {
 export interface SetMemberActiveResult {
   success: boolean;
   active: boolean;
+  /** True only for the first approval of a pending sign-up. */
+  approved: boolean;
   cancelled_registrations: number;
 }

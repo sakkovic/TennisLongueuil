@@ -4,8 +4,8 @@ A small, private mobile app for organising group tennis lessons at **Complexe Sp
 
 The coach creates lessons. Players see them, join with one tap, see who else is coming, and can cancel (optionally telling the coach why). Capacity (4 players per court) is enforced atomically by the database, so a lesson can never be overbooked, even when two players tap **Join** at the same moment.
 
-- **Players**: upcoming lessons, lesson details, join/cancel, participant list, "My Lessons" (upcoming + history), profile with photo and level badge.
-- **Coach (admin)**: create/edit/cancel lessons, registrations and private cancellation reasons, members, player levels, account activation.
+- **Players**: sign up (the coach approves the account before it works), upcoming lessons, lesson details, join/cancel, participant list, "My Lessons" (upcoming + history), profile with photo and level badge.
+- **Coach (admin)**: approve new sign-ups, create/edit/cancel lessons, registrations and private cancellation reasons, members, player levels, account activation.
 - Built for about 10–15 players and one coach, on iOS and Android.
 
 ---
@@ -30,9 +30,9 @@ There is no custom backend server. Supabase is the backend and the source of tru
 ```text
 app/                         Expo Router routes (screens only)
 ├── _layout.tsx              Providers + role-based route guards
-├── account-status.tsx       Loading / inactive account / profile errors
+├── account-status.tsx       Loading / waiting for approval / inactive account / profile errors
 ├── reset-password.tsx       "Choose a new password" after a reset link or code
-├── (auth)/                  login, forgot-password
+├── (auth)/                  login, sign-up, forgot-password
 ├── (player)/                Player app
 │   ├── (tabs)/              Home · My Lessons · Profile
 │   ├── lesson/[id].tsx      Lesson details (join, cancel, participants)
@@ -111,8 +111,9 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
    ```
    This creates every table, constraint, trigger, RPC function, RLS policy, grant, the `avatars` bucket, the Realtime publication and the four initial player levels. `seed.sql` is **not** pushed.
 3. **Authentication → Sign In / Providers**
-   - Turn **off** "Allow new users to sign up" (private club: the coach creates accounts).
+   - Turn **on** "Allow new users to sign up". Players create their own account in the app, but it stays **pending** until you approve it, so sign-up on its own gives access to nothing (see "Accounts and authentication" below).
    - Keep the **Email** provider **enabled** (members sign in with email and password).
+   - Leave "Confirm email" **off** for the smoothest flow: the player goes straight to the "Waiting for approval" screen. If you turn it on, the app asks them to confirm their address first.
 4. **Authentication → Email provider settings** used by the app:
    - **Password requirements**: "Lowercase, uppercase letters and digits". Set **Minimum password length** to **8** to match the app's rules.
    - **Require current password when updating** and **Secure password change** can stay on. The app asks for the current password and signs the member in again before changing it, which satisfies both.
@@ -122,11 +123,13 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 
 ### Create the first admin (coach)
 
-1. Dashboard → **Authentication → Users → Add user → Create new user**. Enter the coach's email and a password, and tick **Auto Confirm User**. A profile is created automatically with the role `player`.
+The first account has to be promoted from outside the app, because there is no admin yet to approve it.
+
+1. Create the account: either sign up in the app with the coach's email, or Dashboard → **Authentication → Users → Add user → Create new user** (tick **Auto Confirm User**). Either way the profile starts as a pending `player`.
 2. Dashboard → **SQL Editor**, run:
    ```sql
    update public.profiles
-      set role = 'admin', full_name = 'Coach Name'
+      set role = 'admin', active = true, approved_at = now(), full_name = 'Coach Name'
     where id = (select id from auth.users where email = 'coach@example.com');
    ```
 3. Sign in to the app with that account. You land in the coach app.
@@ -135,12 +138,13 @@ The role can **only** be changed like this (by the project owner). It is never r
 
 ### Add players
 
-Dashboard → **Authentication → Users → Add user** (email + temporary password, **Auto Confirm User**). Give the player their credentials. They can:
+Players add themselves: **Create an account** on the login screen (name, email, password). The new account is **pending**, so they see "Waiting for approval" and can read nothing else until you let them in.
 
-- change their password in **Profile → Change password** (they need their current password), or
-- use **Forgot your password?** on the login screen and tap the link in the email (requires custom SMTP, see above).
+To approve someone: coach app → **Members**. Pending sign-ups appear in a **Waiting for approval** section at the top, with a banner counting them. Open the person, check the name and email, then tap **Approve member**. They tap **Check again** (or restart the app) and land in the player app. Assign their level from the same screen, before or after approving.
 
-New players appear immediately in the coach's **Members** tab, where the coach assigns their level. Players can edit their own name, phone and photo.
+Deactivating an approved member is separate: it switches the account off and frees their spots in lessons that have not started. The coach can reactivate it later, and the app keeps telling the two apart ("Pending" vs "Inactive").
+
+You can still create accounts yourself in Dashboard → **Authentication → Users → Add user** (email + temporary password, **Auto Confirm User**); they show up as pending sign-ups to approve. Members change their password in **Profile → Change password** (they need their current one) or with **Forgot your password?** on the login screen.
 
 ### Reset a player's password (without email)
 
@@ -175,7 +179,7 @@ EXPO_PUBLIC_SUPABASE_URL=http://192.168.x.x:55521
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable key from `npx supabase status`>
 ```
 
-**Demo accounts** (local only, password `Tennis2026!`): `coach@tennis.local` (admin), `mohamed@`, `alice@`, `zdenek@`, `maelys@`, `samuel@tennis.local`. Password-reset emails appear in the local inbox at `http://127.0.0.1:55524`.
+**Demo accounts** (local only, password `Tennis2026!`): `coach@tennis.local` (admin), `mohamed@`, `alice@`, `zdenek@`, `maelys@`, `samuel@tennis.local`. `julie@tennis.local` is left **pending** so you can try the approval flow from both sides. Password-reset emails appear in the local inbox at `http://127.0.0.1:55524`.
 
 After changing a migration, regenerate the TypeScript types:
 
@@ -222,7 +226,8 @@ Local native builds are also possible: `npx expo run:android` (Android Studio) a
 
 ### Accounts and authentication
 
-- Email + password with Supabase Auth. **Public sign-up is disabled**; the coach creates every account.
+- Email + password with Supabase Auth. Anyone can **sign up**, but every new account is created **pending**: `active = false` and `approved_at = null`, set by a database trigger that ignores whatever the client sends. A pending account can read its own profile and nothing else — no lessons, no member list, no registrations — and `join_lesson` rejects it. The coach approves it in **Members**, which is the only thing that sets `active = true`. So sign-up is open, but the club's data stays private.
+- `approved_at` separates the two reasons an account can be unusable: never approved yet ("Waiting for approval") versus approved then deactivated ("Your account is inactive"). Reactivating keeps the original approval date.
 - The session is stored encrypted in the Keychain/Keystore (`expo-secure-store`). It is split into chunks because SecureStore values must stay under about 2 KB.
 - On launch: session → profile → active? → role → player app or coach app. Inactive accounts see "Your account is inactive" and cannot read any data (enforced by RLS).
 - Forgot password: the member requests a reset email and taps its link on their phone. The app opens on "Choose a new password" with a short-lived recovery session. If the email contains a code (custom template), it can be typed instead.
@@ -277,7 +282,7 @@ Key design points:
 
 - **Private cancellation reasons:** other players can only see `joined` rows, and a CHECK constraint guarantees a `joined` row never carries a reason. Only the author and the coach can ever read one.
 - **Other members' phone numbers and emails** are not selectable by players (column privileges). The coach reads them through a function.
-- **No role escalation:** `role`, `player_level_id` and `active` have no UPDATE grant for app users. The profile trigger always creates `player` and ignores sign-up metadata.
+- **No role escalation and no self-approval:** `role`, `player_level_id`, `active` and `approved_at` have no UPDATE grant for app users, so no member can activate themselves whatever they send. The profile trigger always creates a pending `player` and reads only `full_name` from sign-up metadata. `admin_set_member_active` is the single path to `active = true`, and it checks that the caller is an active admin.
 - **SECURITY DEFINER functions** (`join_lesson`, `cancel_registration`, `get_my_profile`, `admin_*`) exist because members have no direct write access. Each one sets `search_path = ''`, uses fully qualified names, derives the caller from `auth.uid()`, re-checks the role, and is executable by `authenticated` only. Internal helpers live in a `private` schema that the API does not expose.
 - The service-role key is never used by the app.
 
@@ -294,6 +299,7 @@ npm run test:db      # database tests on a throwaway PostgreSQL 17 (no Docker ne
 
 - **Unit/component tests** (`src/**/__tests__`): capacity text and plurals, lesson availability rules, DST-safe dates, friendly error mapping, lesson form validation, My Lessons split, chunked secure storage, `LessonCard` and `CapacityIndicator` states.
 - **Database tests** (`supabase/tests`) run the real migrations and cover: joining, duplicates, full lessons, **simultaneous joins never exceeding capacity** (including raw concurrent inserts that bypass the function), cancellation freeing a spot, cancellation privacy, players unable to cancel for others, change their level or role, or create lessons, admin lesson and level management, inactive accounts, cancelled lessons, closed registration and deadlines, storage policies, and the full acceptance scenario.
+- **Sign-up approval** (`supabase/tests/signup-approval.test.ts`): a new account is always a pending `player` whatever the sign-up metadata claims; a pending member sees no lessons, members or registrations, cannot join, and cannot approve themselves directly or through the admin function; only the coach approves, which records `approved_at` and unlocks joining; reactivating keeps the original approval date.
 - To run the database tests against the local Docker stack instead: `TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55522/postgres npm run test:db`, then `npm run db:reset` to clean up.
 
 ---
@@ -302,4 +308,4 @@ npm run test:db      # database tests on a throwaway PostgreSQL 17 (no Docker ne
 
 - **Waitlist:** add `waitlisted` to the `registration_status` enum. Capacity logic only counts `joined` rows, so nothing else changes. Promotion could then run inside `cancel_registration`, under the same lock.
 - **Push notifications** (Expo Notifications): new lesson, reminder, lesson changed/cancelled, spot available. Lesson changes already produce database events.
-- **In-app member invitations:** would need a Supabase Edge Function holding the service-role key server-side. Today the coach adds members in the Supabase dashboard.
+- **Invite links and rejecting sign-ups:** today anyone can create a pending account and the coach approves it; there is no way to decline one other than leaving it pending. Invitation links (or a "decline" action that removes the auth user) would need a Supabase Edge Function holding the service-role key server-side.

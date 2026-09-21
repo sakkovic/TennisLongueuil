@@ -58,7 +58,10 @@ const AUTH_MESSAGES: Record<string, string> = {
   same_password: 'Your new password must be different from your current one.',
   over_request_rate_limit: 'Too many attempts. Please wait a moment and try again.',
   over_email_send_rate_limit: 'Too many emails sent. Please wait a few minutes and try again.',
-  signup_disabled: 'New accounts are created by your coach.',
+  signup_disabled: 'New sign-ups are closed right now. Please contact your coach.',
+  email_address_invalid: 'Please enter a valid email address.',
+  user_already_exists: 'An account already exists for this email. Try signing in instead.',
+  email_exists: 'An account already exists for this email. Try signing in instead.',
   user_not_found: 'Incorrect email or password.',
   session_not_found: 'Your session has expired. Please sign in again.',
 };

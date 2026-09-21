@@ -159,6 +159,7 @@ export type Database = {
       profiles: {
         Row: {
           active: boolean
+          approved_at: string | null
           avatar_path: string | null
           created_at: string
           full_name: string
@@ -170,6 +171,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          approved_at?: string | null
           avatar_path?: string | null
           created_at?: string
           full_name: string
@@ -181,6 +183,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          approved_at?: string | null
           avatar_path?: string | null
           created_at?: string
           full_name?: string
@@ -258,6 +261,7 @@ export type Database = {
         created_at: string | null
         updated_at: string | null
         upcoming_lessons_count: number | null
+        approved_at: string | null
       }
     }
   }

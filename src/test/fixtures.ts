@@ -1,5 +1,6 @@
 import type { Lesson, LessonRegistration } from '@/features/lessons/api';
 import type { PlayerRegistration } from '@/features/registrations/api';
+import type { Member } from '@/types/models';
 
 let sequence = 0;
 const nextId = (prefix: string) => `${prefix}-${++sequence}`;
@@ -73,6 +74,27 @@ export function makePlayerRegistration(
       registered_count: 1,
       ...lesson,
     },
+  };
+}
+
+/** An approved, active player. Pass `active`/`approved_at` for other states. */
+export function makeMember(overrides: Partial<Member> = {}): Member {
+  const id = overrides.id ?? nextId('member');
+  return {
+    id,
+    full_name: 'Player',
+    email: `${id}@test.local`,
+    phone: null,
+    avatar_path: null,
+    role: 'player',
+    player_level_id: 2,
+    player_level_name: 'Intermediate',
+    active: true,
+    approved_at: '2026-09-01T00:00:00.000Z',
+    created_at: '2026-09-01T00:00:00.000Z',
+    updated_at: '2026-09-01T00:00:00.000Z',
+    upcoming_lessons_count: 0,
+    ...overrides,
   };
 }
 

@@ -42,11 +42,23 @@ export async function disconnectAll(): Promise<void> {
   openClients.clear();
 }
 
-/** Creates an auth user; the on_auth_user_created trigger creates the profile. */
+/**
+ * Creates an auth user; the on_auth_user_created trigger creates the profile.
+ *
+ * The trigger always leaves a new account PENDING (inactive, never approved),
+ * like a real sign-up. Most tests want an ordinary approved member, so that is
+ * the default here. Pass `pending: true` for a sign-up nobody has approved yet,
+ * or `active: false` for an account the coach approved and then switched off.
+ */
 export async function createUser(
   db: Client,
   name: string,
-  options: { role?: Role; active?: boolean; metadata?: Record<string, unknown> } = {},
+  options: {
+    role?: Role;
+    active?: boolean;
+    pending?: boolean;
+    metadata?: Record<string, unknown>;
+  } = {},
 ): Promise<TestUser> {
   const email = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '.')}.${randomUUID().slice(0, 8)}@test.local`;
   const { rows } = await db.query<{ id: string }>(
@@ -54,13 +66,43 @@ export async function createUser(
     [email, JSON.stringify({ full_name: name, ...options.metadata })],
   );
   const id = rows[0].id;
-  if (options.role === 'admin') {
-    await db.query(`update public.profiles set role = 'admin' where id = $1`, [id]);
-  }
-  if (options.active === false) {
-    await db.query(`update public.profiles set active = false where id = $1`, [id]);
-  }
+  const pending = options.pending ?? false;
+  const active = pending ? false : (options.active ?? true);
+  await db.query(
+    `update public.profiles
+        set role = $2::public.user_role,
+            active = $3,
+            approved_at = case when $4 then null else now() end
+      where id = $1`,
+    [id, options.role ?? 'player', active, pending],
+  );
   return { id, email, name };
+}
+
+/** The raw profile row, for assertions about role / active / approved_at. */
+export async function getProfile(
+  db: Client,
+  userId: string,
+): Promise<{ role: Role; active: boolean; approved_at: Date | null; full_name: string }> {
+  const { rows } = await db.query(
+    `select role, active, approved_at, full_name from public.profiles where id = $1`,
+    [userId],
+  );
+  return rows[0];
+}
+
+/** Simulates a sign-up: Supabase Auth inserts the user, the trigger does the rest. */
+export async function signUp(
+  db: Client,
+  name: string,
+  metadata: Record<string, unknown> = {},
+): Promise<TestUser> {
+  const email = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '.')}.${randomUUID().slice(0, 8)}@test.local`;
+  const { rows } = await db.query<{ id: string }>(
+    `insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), $1, $2) returning id`,
+    [email, JSON.stringify({ full_name: name, ...metadata })],
+  );
+  return { id: rows[0].id, email, name };
 }
 
 /** Creates users one after another (a pg client runs one query at a time). */

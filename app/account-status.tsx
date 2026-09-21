@@ -8,10 +8,11 @@ import { spacing } from '@/constants/theme';
 import { signOut } from '@/features/auth/api';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { logError } from '@/utils/errors';
+import { firstName } from '@/utils/names';
 
 /** Shown while the profile loads, or when the account cannot use the app. */
 export default function AccountStatusScreen() {
-  const { status, profileError, retryProfile, isRetryingProfile } = useAuth();
+  const { status, profile, profileError, retryProfile, isRetryingProfile } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -28,6 +29,10 @@ export default function AccountStatusScreen() {
     <Button label="Sign out" variant="secondary" onPress={handleSignOut} loading={signingOut} />
   );
 
+  const greeting = profile
+    ? `Thanks for signing up, ${firstName(profile.full_name)}.`
+    : 'Thanks for signing up.';
+
   return (
     <ScreenContainer scroll={false} edges={['top', 'bottom']} contentStyle={styles.center}>
       {status === 'profileError' ? (
@@ -35,6 +40,23 @@ export default function AccountStatusScreen() {
           <ErrorState error={profileError} onRetry={retryProfile} retrying={isRetryingProfile} />
           <View style={styles.actions}>{signOutButton}</View>
         </>
+      ) : status === 'pendingApproval' ? (
+        <EmptyState
+          icon="hourglass-outline"
+          title="Waiting for approval"
+          message={`${greeting} Your coach reviews every new member, so you'll be able to see lessons as soon as they approve your account.`}
+          action={
+            <View style={styles.actions}>
+              <Button
+                label="Check again"
+                icon="refresh"
+                onPress={retryProfile}
+                loading={isRetryingProfile}
+              />
+              {signOutButton}
+            </View>
+          }
+        />
       ) : status === 'inactive' ? (
         <EmptyState
           icon="lock-closed-outline"
@@ -58,5 +80,5 @@ export default function AccountStatusScreen() {
 
 const styles = StyleSheet.create({
   center: { justifyContent: 'center' },
-  actions: { paddingHorizontal: spacing.xl },
+  actions: { paddingHorizontal: spacing.xl, gap: spacing.md, alignSelf: 'stretch' },
 });
