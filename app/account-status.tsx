@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/Button';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
@@ -37,6 +38,9 @@ export default function AccountStatusScreen() {
 
   return (
     <ScreenContainer scroll={false} edges={['top', 'bottom']} contentStyle={styles.center}>
+      <View style={styles.brand}>
+        <BrandMark layout="stacked" size="sm" />
+      </View>
       {status === 'profileError' ? (
         <>
           <ErrorState error={profileError} onRetry={retryProfile} retrying={isRetryingProfile} />
@@ -82,5 +86,6 @@ export default function AccountStatusScreen() {
 
 const styles = StyleSheet.create({
   center: { justifyContent: 'center' },
+  brand: { alignItems: 'center' },
   actions: { paddingHorizontal: spacing.xl, gap: spacing.md, alignSelf: 'stretch' },
 });

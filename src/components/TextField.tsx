@@ -34,6 +34,9 @@ export function TextField({
         ref={ref}
         accessibilityLabel={label}
         placeholderTextColor={colors.textSubtle}
+        selectionColor={colors.primary}
+        cursorColor={colors.primary}
+        keyboardAppearance="dark"
         maxFontSizeMultiplier={1.4}
         multiline={multiline}
         onFocus={(event) => {

@@ -63,8 +63,10 @@ export function ConfirmationModal({
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={dismiss}
-          accessibilityRole="button"
-          accessibilityLabel={cancelLabel}
+          // Tap outside to dismiss. Hidden from screen readers, which use the
+          // cancel button instead of a duplicate full-screen button.
+          accessible={false}
+          importantForAccessibility="no"
         >
           <View style={styles.backdrop} />
         </Pressable>

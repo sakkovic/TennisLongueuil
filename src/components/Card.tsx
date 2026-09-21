@@ -42,5 +42,5 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     ...shadow.card,
   },
-  pressed: { backgroundColor: '#FAFBF8' },
+  pressed: { backgroundColor: colors.surfacePressed },
 });

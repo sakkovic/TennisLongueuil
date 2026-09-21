@@ -27,7 +27,7 @@ export function SegmentedControl<T extends string>({
             accessibilityState={{ selected }}
             style={[styles.segment, selected && styles.selected]}
           >
-            <AppText variant="label" tone={selected ? 'default' : 'muted'}>
+            <AppText variant="label" tone={selected ? 'inverse' : 'muted'}>
               {option.label}
             </AppText>
           </Pressable>
@@ -53,8 +53,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
   selected: {
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    backgroundColor: colors.primary,
   },
 });

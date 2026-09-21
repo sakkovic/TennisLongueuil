@@ -1,5 +1,10 @@
+import {
+  PlayfairDisplay_600SemiBold,
+  PlayfairDisplay_700Bold,
+  useFonts,
+} from '@expo-google-fonts/playfair-display';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { DarkTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -18,16 +23,40 @@ void configureNotificationHandler();
 
 void SplashScreen.preventAutoHideAsync();
 
+/** Dark navigation theme, so screen transitions never flash white. */
+const navigationTheme: Theme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: colors.primary,
+    background: colors.background,
+    card: colors.tabBar,
+    text: colors.text,
+    border: colors.border,
+    notification: colors.primary,
+  },
+};
+
 export default function RootLayout() {
+  // The brand serif is used for headings; keep the splash screen until it is ready
+  // (on a loading error the app falls back to the system font).
+  const [fontsLoaded, fontError] = useFonts({
+    PlayfairDisplay_600SemiBold,
+    PlayfairDisplay_700Bold,
+  });
+
   if (!config.isSupabaseConfigured) return <MissingConfiguration />;
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <I18nProvider>
           <AuthProvider>
-            <StatusBar style="dark" />
-            <RootNavigator />
+            <ThemeProvider value={navigationTheme}>
+              <StatusBar style="light" />
+              <RootNavigator />
+            </ThemeProvider>
           </AuthProvider>
         </I18nProvider>
       </QueryClientProvider>

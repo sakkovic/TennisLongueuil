@@ -10,6 +10,7 @@ import { ListRow } from '@/components/ListRow';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { SegmentedControl } from '@/components/SegmentedControl';
+import { APP_NAME } from '@/constants/brand';
 import { colors, radius, spacing } from '@/constants/theme';
 import { signOut } from '@/features/auth/api';
 import { useAuth, useCurrentMember } from '@/features/auth/AuthProvider';
@@ -119,7 +120,7 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
       </View>
 
       <AppText variant="caption" tone="subtle" style={styles.note}>
-        Tennis Longueuil · version {Constants.expoConfig?.version ?? '1.0.0'}
+        {APP_NAME} · version {Constants.expoConfig?.version ?? '1.0.0'}
       </AppText>
 
       <ConfirmationModal

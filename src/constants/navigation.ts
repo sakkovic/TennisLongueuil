@@ -1,12 +1,12 @@
 import type { NativeStackNavigationOptions } from 'expo-router';
 import type { BottomTabNavigationOptions } from 'expo-router/js-tabs';
 
-import { colors } from './theme';
+import { colors, fonts } from './theme';
 
 /** Shared header style for pushed screens (details, forms). */
 export const stackScreenOptions: NativeStackNavigationOptions = {
   headerTintColor: colors.primary,
-  headerTitleStyle: { color: colors.text, fontWeight: '700' },
+  headerTitleStyle: { color: colors.text, fontFamily: fonts.displaySemiBold, fontSize: 19 },
   headerStyle: { backgroundColor: colors.background },
   headerShadowVisible: false,
   headerBackButtonDisplayMode: 'minimal',
@@ -17,6 +17,6 @@ export const tabScreenOptions: BottomTabNavigationOptions = {
   headerShown: false,
   tabBarActiveTintColor: colors.primary,
   tabBarInactiveTintColor: colors.textSubtle,
-  tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+  tabBarStyle: { backgroundColor: colors.tabBar, borderTopColor: colors.border },
   tabBarLabelStyle: { fontWeight: '600' },
 };

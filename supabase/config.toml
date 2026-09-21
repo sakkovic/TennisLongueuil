@@ -250,7 +250,7 @@ otp_expiry = 3600
 # The app resets passwords with a 6-digit code, which works the same in Expo Go,
 # development builds and store builds (no deep-link configuration required).
 [auth.email.template.recovery]
-subject = "Your Tennis Longueuil password reset code"
+subject = "Your SaKKa.Tennis password reset"
 content_path = "./supabase/templates/recovery.html"
 
 # Uncomment to customize email template

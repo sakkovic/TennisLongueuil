@@ -1,7 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
@@ -17,12 +16,14 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { z } from 'zod';
 
 import { AppText } from '@/components/AppText';
+import { BrandMark } from '@/components/BrandMark';
 import { Banner } from '@/components/Banner';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
-import { colors, radius, spacing } from '@/constants/theme';
+import { colors, spacing } from '@/constants/theme';
 import { signIn } from '@/features/auth/api';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { useT } from '@/i18n';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 const loginSchema = z.object({
@@ -34,6 +35,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
+  const t = useT();
   const { recoveryError, clearRecoveryError } = useAuth();
   const passwordRef = useRef<TextInput>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -57,21 +59,15 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-      <StatusBar style="light" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <View style={[styles.hero, { paddingTop: insets.top }]}>
-            <View style={styles.logo}>
-              <Ionicons name="tennisball" size={40} color={colors.onAccent} />
-            </View>
-            <AppText variant="display" tone="inverse">
-              Tennis Longueuil
-            </AppText>
-            <AppText style={styles.heroSubtitle}>
-              Group lessons · Complexe Sportif Longueuil
+          <View style={[styles.hero, { paddingTop: insets.top + spacing.xxl }]}>
+            <BrandMark layout="stacked" size="lg" subtitle={t('brandTagline')} />
+            <AppText tone="muted" style={styles.tagline}>
+              {t('loginTagline')}
             </AppText>
           </View>
 
@@ -178,24 +174,12 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { flexGrow: 1 },
   hero: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xxxl,
-    gap: spacing.sm,
-    borderBottomLeftRadius: radius.xl,
-    borderBottomRightRadius: radius.xl,
-  },
-  logo: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.accent,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.xl,
-    marginBottom: spacing.md,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.md,
+    gap: spacing.md,
   },
-  heroSubtitle: { color: 'rgba(255, 255, 255, 0.8)' },
+  tagline: { textAlign: 'center' },
   form: {
     padding: spacing.xl,
     gap: spacing.lg,

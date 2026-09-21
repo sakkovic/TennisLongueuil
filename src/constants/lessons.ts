@@ -1,3 +1,5 @@
+import { SESSION_MINUTES } from './brand';
+
 /**
  * Lesson business constants.
  *
@@ -15,7 +17,7 @@ export const MAX_COURTS = 20;
 /** Pre-filled in the lesson form; the database uses the same defaults. */
 export const DEFAULT_LESSON_TITLE = 'Tennis Lesson';
 export const DEFAULT_LESSON_LOCATION = 'Complexe Sportif Longueuil';
-export const DEFAULT_LESSON_DURATION_MINUTES = 90;
+export const DEFAULT_LESSON_DURATION_MINUTES = SESSION_MINUTES;
 
 /** Quick choices in the lesson form; any other value is kept when editing. */
 export const LESSON_DURATION_CHOICES = [45, 60, 90, 120, 180];

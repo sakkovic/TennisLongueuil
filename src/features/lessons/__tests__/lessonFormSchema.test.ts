@@ -23,13 +23,13 @@ function errorsFor(values: LessonFormValues) {
 }
 
 describe('lesson form defaults', () => {
-  it('defaults to one court at Complexe Sportif Longueuil, 6:00–7:30 PM tomorrow', () => {
+  it('defaults to one court at Complexe Sportif Longueuil, a 2-hour session at 6:00 PM tomorrow', () => {
     const values = base();
     expect(values.location).toBe('Complexe Sportif Longueuil');
     expect(values.title).toBe('Tennis Lesson');
     expect(values.courtCount).toBe(1);
     expect(values.startTime.getHours()).toBe(18);
-    expect(values.durationMinutes).toBe(90);
+    expect(values.durationMinutes).toBe(120);
     expect(schema.safeParse(values).success).toBe(true);
   });
 

@@ -53,7 +53,7 @@ export function DateTimeField({
             minuteInterval={5}
             minimumDate={minimumDate}
             accentColor={colors.primary}
-            themeVariant="light"
+            themeVariant="dark"
             onValueChange={(_, date) => {
               if (date) onChange(date);
             }}

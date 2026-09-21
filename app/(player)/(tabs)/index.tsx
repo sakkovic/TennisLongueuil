@@ -1,17 +1,18 @@
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
+import { BrandMark } from '@/components/BrandMark';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { ScreenHeader } from '@/components/ScreenHeader';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
 import { useCurrentMember } from '@/features/auth/AuthProvider';
+import { ClubOffer } from '@/features/home/ClubOffer';
 import { useLessonsRealtime, useUpcomingLessons } from '@/features/lessons/hooks';
 import { LessonCard } from '@/features/lessons/LessonCard';
 import type { Lesson } from '@/features/lessons/api';
 import { useJoinLesson } from '@/features/registrations/hooks';
 import { useT } from '@/i18n';
-import { formatLongDate, getGreeting } from '@/utils/date';
+import { getGreeting } from '@/utils/date';
 import { getErrorMessage, logError } from '@/utils/errors';
 import { firstName } from '@/utils/names';
 
@@ -40,10 +41,8 @@ export default function HomeScreen() {
       onRefresh={() => void lessons.refetch()}
       refreshing={lessons.isRefetching}
     >
-      <ScreenHeader
-        overline={formatLongDate(new Date())}
-        title={`${getGreeting()}, ${firstName(member.full_name)} 🎾`}
-      />
+      <BrandMark subtitle={`${getGreeting()}, ${firstName(member.full_name)}`} />
+      <ClubOffer />
 
       {lessons.isPending ? (
         <LoadingState label={t('loadingLessons')} />

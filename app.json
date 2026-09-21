@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Tennis Longueuil",
+    "name": "SaKKa.Tennis",
     "slug": "tennis-longueuil",
     "version": "1.0.0",
     "scheme": "tennislongueuil",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "ca.tennislongueuil.app"
@@ -14,7 +14,7 @@
     "android": {
       "package": "ca.tennislongueuil.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0E4D2E",
+        "backgroundColor": "#1ECFCB",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -33,15 +33,15 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
-          "imageWidth": 160,
+          "imageWidth": 140,
           "resizeMode": "contain",
-          "backgroundColor": "#0E4D2E"
+          "backgroundColor": "#04080B"
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Tennis Longueuil uses your photos so you can choose a profile picture.",
+          "photosPermission": "SaKKa.Tennis uses your photos so you can choose a profile picture.",
           "cameraPermission": false,
           "microphonePermission": false
         }
@@ -53,12 +53,13 @@
       [
         "expo-notifications",
         {
-          "color": "#0E4D2E"
+          "color": "#1ECFCB"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "backgroundColor": "#04080B"
   }
 }

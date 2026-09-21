@@ -127,23 +127,27 @@ const styles = StyleSheet.create({
   },
   hero: {
     height: 96,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primarySoft,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
-  // A subtle court service line across the header.
+  // A subtle aqua court service line across the header.
   courtLine: {
     position: 'absolute',
     top: 48,
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: colors.primary,
+    opacity: 0.35,
   },
   photoWrapper: { alignSelf: 'center', marginTop: -56 },
   photoRing: {
     borderRadius: 60,
-    borderWidth: 4,
-    borderColor: colors.surface,
+    borderWidth: 3,
+    borderColor: colors.primary,
     backgroundColor: colors.surface,
+    padding: 2,
   },
   cameraButton: {
     position: 'absolute',

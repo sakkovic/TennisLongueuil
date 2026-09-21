@@ -5,9 +5,9 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Banner } from '@/components/Banner';
+import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/Button';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { ScreenHeader } from '@/components/ScreenHeader';
 import { SectionHeader } from '@/components/SectionHeader';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
 import { colors, radius, shadow, spacing } from '@/constants/theme';
@@ -17,7 +17,7 @@ import { LessonCard } from '@/features/lessons/LessonCard';
 import { useMembers } from '@/features/members/hooks';
 import { useT } from '@/i18n';
 import { getAccountState } from '@/types/models';
-import { formatLongDate, getGreeting } from '@/utils/date';
+import { getGreeting } from '@/utils/date';
 import { firstName } from '@/utils/names';
 
 export default function AdminHomeScreen() {
@@ -39,10 +39,8 @@ export default function AdminHomeScreen() {
 
   return (
     <ScreenContainer edges={['top']} onRefresh={refresh} refreshing={lessons.isRefetching}>
-      <ScreenHeader
-        overline={formatLongDate(new Date())}
-        title={`${getGreeting()}, ${firstName(member.full_name)}`}
-        subtitle={t('homeSubtitle')}
+      <BrandMark
+        subtitle={`${getGreeting()}, ${firstName(member.full_name)} · ${t('homeSubtitle')}`}
       />
 
       {pendingCount > 0 ? (

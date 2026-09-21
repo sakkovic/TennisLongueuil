@@ -30,7 +30,7 @@ export function CapacityIndicator({
   const full = isLessonFull(registered, capacity);
   const remaining = spotsRemaining(registered, capacity);
   const large = size === 'large';
-  const fillColor = full ? colors.danger : colors.primary;
+  const fillColor = full ? colors.warning : colors.primary;
   // One segment per spot; fall back to a continuous bar for big lessons.
   const segments = capacity <= 12 ? capacity : 0;
 
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   countRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   fullBadge: {
-    backgroundColor: colors.danger,
+    backgroundColor: colors.warning,
     paddingHorizontal: spacing.sm + 2,
     paddingVertical: spacing.xxs + 1,
     borderRadius: radius.pill,

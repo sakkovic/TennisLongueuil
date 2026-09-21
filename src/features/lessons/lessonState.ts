@@ -93,7 +93,7 @@ export function getLessonAvailability(
   if (isRegistered) {
     return result('registered', 'success', { canCancel: now < cancellationDeadline });
   }
-  if (lesson.registered_count >= lesson.capacity) return result('full', 'danger');
+  if (lesson.registered_count >= lesson.capacity) return result('full', 'warning');
   if (!lesson.registration_open) return result('closed', 'neutral');
   if (now > registrationDeadline) return result('deadline_passed', 'neutral');
   return result('open', 'success', { canJoin: true });

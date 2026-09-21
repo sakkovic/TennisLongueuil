@@ -14,7 +14,8 @@ interface PlayerAvatarProps {
   size?: number;
 }
 
-const fallbackColors = ['#0E4D2E', '#1D4E89', '#5B2A9D', '#9A3412', '#0F6E6E', '#7A5A00'];
+// Deep tones that sit well on the dark UI, with light initials.
+const fallbackColors = ['#0F3E40', '#1A3558', '#352A5E', '#4D311C', '#15443A', '#43401A'];
 
 export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -65,5 +66,5 @@ export function PlayerAvatar({ name, avatarPath, version, size = 40 }: PlayerAva
 const styles = StyleSheet.create({
   image: { backgroundColor: colors.surfaceMuted },
   fallback: { alignItems: 'center', justifyContent: 'center' },
-  initials: { color: colors.onPrimary, fontWeight: '700' },
+  initials: { color: colors.text, fontWeight: '700' },
 });

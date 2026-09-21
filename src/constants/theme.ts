@@ -1,38 +1,54 @@
 import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 
 /**
- * Design tokens. Deep court green + a touch of tennis-ball yellow, on a warm
- * off-white background. System fonts keep the app fast and native-feeling.
+ * SaKKa.Tennis design tokens.
+ *
+ * Dark, premium and athletic: the near-black and bright aqua are sampled from
+ * the brand artwork (assets/sakkatennis_*.png), so logo images sit seamlessly
+ * on the app background. Use these tokens everywhere; never hard-code colours.
  */
+export const brand = {
+  aqua: '#1ECFCB',
+  aquaDeep: '#00C4C4',
+  aquaLight: '#6CDFDD',
+  ink: '#04080B',
+} as const;
+
 export const colors = {
-  primary: '#0E4D2E',
-  primaryPressed: '#0A3A22',
-  primarySoft: '#E3F0E8',
-  onPrimary: '#FFFFFF',
+  primary: brand.aqua,
+  primaryPressed: '#17B5B2',
+  /** Aqua-tinted dark surface for highlighted areas. */
+  primarySoft: '#0B2B2D',
+  /** Text and icons placed on aqua. */
+  onPrimary: '#021416',
 
-  accent: '#D7F23B',
-  onAccent: '#1B2A06',
+  accent: brand.aquaLight,
+  accentPressed: '#56D2CF',
+  onAccent: '#021416',
 
-  background: '#F5F6F2',
-  surface: '#FFFFFF',
-  surfaceMuted: '#EEF0EA',
-  border: '#E1E4DC',
-  borderStrong: '#C9CEC3',
+  background: brand.ink,
+  surface: '#0B1417',
+  surfaceMuted: '#111E22',
+  surfacePressed: '#16272C',
+  tabBar: '#070E11',
+  border: '#1A2B30',
+  borderStrong: '#28434A',
 
-  text: '#111A14',
-  textMuted: '#5E6B62',
-  textSubtle: '#6F7B72',
+  text: '#E8F6F6',
+  textMuted: '#9DB4B6',
+  textSubtle: '#6F898C',
 
-  success: '#1E7F4F',
-  successSoft: '#E1F3E8',
-  warning: '#9A4A07',
-  warningSoft: '#FDF1D8',
-  danger: '#B42318',
-  dangerSoft: '#FDE8E7',
-  info: '#1D4E89',
-  infoSoft: '#E3EDFA',
+  success: '#4ADE9A',
+  successSoft: '#0E2A20',
+  warning: '#F4B860',
+  warningSoft: '#2C2210',
+  danger: '#FF7A7A',
+  dangerSoft: '#321417',
+  dangerBorder: '#5B2A2F',
+  info: '#7FB8FF',
+  infoSoft: '#11223A',
 
-  overlay: 'rgba(17, 26, 20, 0.45)',
+  overlay: 'rgba(0, 0, 0, 0.65)',
 } as const;
 
 export const spacing = {
@@ -57,9 +73,19 @@ export const radius = {
 /** Minimum comfortable touch target (Apple HIG 44pt, Material 48dp). */
 export const touchTarget = 48;
 
+/**
+ * Playfair Display (the elegant serif of the SaKKa.Tennis wordmark) is used for
+ * the brand name and large headings only; everything else uses the system font
+ * for readability. Loaded in app/_layout.tsx.
+ */
+export const fonts = {
+  display: 'PlayfairDisplay_700Bold',
+  displaySemiBold: 'PlayfairDisplay_600SemiBold',
+} as const;
+
 export const typography = {
-  display: { fontSize: 28, lineHeight: 34, fontWeight: '800', letterSpacing: -0.4 },
-  title: { fontSize: 22, lineHeight: 28, fontWeight: '700', letterSpacing: -0.2 },
+  display: { fontFamily: fonts.display, fontSize: 30, lineHeight: 38, letterSpacing: 0.2 },
+  title: { fontFamily: fonts.displaySemiBold, fontSize: 23, lineHeight: 30, letterSpacing: 0.2 },
   heading: { fontSize: 18, lineHeight: 24, fontWeight: '700' },
   body: { fontSize: 16, lineHeight: 22, fontWeight: '400' },
   bodyStrong: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
@@ -69,30 +95,32 @@ export const typography = {
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '700',
-    letterSpacing: 1.2,
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
   },
 } satisfies Record<string, TextStyle>;
 
 export const shadow = {
-  card: Platform.select<ViewStyle>({
+  /** On a dark UI, depth comes from borders and surfaces; cards stay flat. */
+  card: {} as ViewStyle,
+  /** Soft aqua glow for the main call to action (iOS; Android shows a flat button). */
+  glow: Platform.select<ViewStyle>({
     ios: {
-      shadowColor: '#0B1F14',
-      shadowOpacity: 0.06,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 3 },
+      shadowColor: brand.aqua,
+      shadowOpacity: 0.35,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 4 },
     },
-    android: { elevation: 1 },
     default: {},
   }),
 } as const;
 
 /** Level badge colours, chosen by level rank so new levels need no code change. */
 const levelPalette = [
-  { background: '#E3F0E8', text: '#0E4D2E' },
-  { background: '#E3EDFA', text: '#1D4E89' },
-  { background: '#EEE7FB', text: '#5B2A9D' },
-  { background: '#FDEBDD', text: '#9A3412' },
+  { background: '#0B2B2D', text: brand.aquaLight },
+  { background: '#11223A', text: '#8FC1FF' },
+  { background: '#221B3A', text: '#BBA6FF' },
+  { background: '#35230F', text: '#FFB56B' },
 ] as const;
 
 export function levelColors(rank: number | null | undefined) {

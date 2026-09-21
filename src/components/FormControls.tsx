@@ -28,7 +28,7 @@ export function SwitchRow({ label, description, value, onValueChange }: SwitchRo
         onValueChange={onValueChange}
         accessibilityLabel={label}
         trackColor={{ true: colors.primary, false: colors.borderStrong }}
-        thumbColor={colors.surface}
+        thumbColor={colors.text}
       />
     </View>
   );

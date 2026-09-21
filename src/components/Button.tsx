@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import type { ComponentProps } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 
-import { colors, radius, spacing, touchTarget, typography } from '@/constants/theme';
+import { colors, radius, shadow, spacing, touchTarget, typography } from '@/constants/theme';
 
 import { AppText } from './AppText';
 
@@ -35,26 +35,26 @@ const variants: Record<
     border: colors.primary,
   },
   secondary: {
-    background: colors.surface,
-    pressed: colors.surfaceMuted,
+    background: 'transparent',
+    pressed: colors.surfacePressed,
     text: colors.primary,
     border: colors.borderStrong,
   },
   danger: {
-    background: colors.surface,
+    background: 'transparent',
     pressed: colors.dangerSoft,
     text: colors.danger,
-    border: '#F1B7B2',
+    border: colors.dangerBorder,
   },
   ghost: {
     background: 'transparent',
-    pressed: colors.surfaceMuted,
+    pressed: colors.surfacePressed,
     text: colors.primary,
     border: 'transparent',
   },
   accent: {
     background: colors.accent,
-    pressed: '#C4DE2C',
+    pressed: colors.accentPressed,
     text: colors.onAccent,
     border: colors.accent,
   },
@@ -97,6 +97,7 @@ export function Button({
           backgroundColor: pressed ? palette.pressed : palette.background,
           borderColor: palette.border,
         },
+        variant === 'primary' && !inactive && shadow.glow,
         disabled && !loading && styles.disabled,
         style,
       ]}

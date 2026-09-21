@@ -1,12 +1,19 @@
-# Tennis Longueuil
+# SaKKa.Tennis
 
-A small, private mobile app for organising group tennis lessons at **Complexe Sportif Longueuil**.
+A small, private mobile app for organising group tennis lessons at **Complexe Sportif Longueuil**, with coach Sakka Mohamed Anis (CP1): 120-minute sessions, $45/hour plus court fees shared between players.
 
 The coach creates lessons. Players see them, join with one tap, see who else is coming, and can cancel (optionally telling the coach why). Capacity (4 players per court) is enforced atomically by the database, so a lesson can never be overbooked, even when two players tap **Join** at the same moment.
 
 - **Players**: sign up (the coach approves the account before it works), upcoming lessons, lesson details, join/cancel, participant list, "My Lessons" (upcoming + history), profile with photo and level badge.
 - **Coach (admin)**: approve new sign-ups, create/edit/cancel lessons, registrations and private cancellation reasons, members, player levels, account activation.
-- Built for about 10–15 players and one coach, on iOS and Android.
+- Built for about 10–15 players and one coach, on iOS and Android, in English and French.
+- **Club rules** (enforced by the database): registration closes **4 hours** before a lesson; players can cancel until **24 hours** before.
+
+### Branding
+
+- Dark + aqua theme sampled from the SaKKa.Tennis artwork in `assets/sakkatennis_*.png`. All colours, fonts (Playfair Display for the wordmark and headings) and spacing live in `src/constants/theme.ts`.
+- The club offer shown on the home screen (coach, CP1, session length, price) lives in `src/constants/brand.ts`.
+- App icon, Android adaptive icon, splash and the in-app emblem (`assets/brand/emblem.png`) were generated from the emblem artwork.
 
 ---
 
@@ -242,7 +249,9 @@ Local native builds are also possible: `npx expo run:android` (Android Studio) a
 
 ### Lessons and capacity
 
-- Default title "Tennis Lesson", default location **Complexe Sportif Longueuil** (stored per lesson, so other locations are possible).
+- Default title "Tennis Lesson", default location **Complexe Sportif Longueuil** (stored per lesson, so other locations are possible), default length 120 minutes.
+- **Weekly series:** the coach can repeat a lesson every week (same weekday, time and courts) for 2–26 weeks. The series is created in one insert (all or nothing), and each week is an independent lesson that can be edited or cancelled on its own.
+- **Registration deadline:** registration closes 4 hours before the start, or earlier if the coach chooses (6 h, 12 h, 1–3 days). `join_lesson` enforces this even for lessons without an explicit deadline.
 - `capacity` is a generated column: **`court_count × 4`**. The app only displays it.
 - `join_lesson(p_lesson_id)` runs entirely in PostgreSQL. It identifies the player with `auth.uid()`, checks the account, lesson status, start time, registration open/deadline and duplicates, then **locks the lesson row** (`FOR NO KEY UPDATE`). While the lock is held it counts active registrations and inserts or reactivates the registration. Concurrent joins queue on the lock, so exactly one player gets the last spot. The others receive `LESSON_FULL`, which the app shows as "Sorry, this lesson has just become full."
 - As a second safety net, `lessons.registered_count` is maintained by a trigger and protected by a `CHECK (registered_count <= court_count * 4)`. Even a write that bypassed `join_lesson` could not overbook a lesson. The same check stops the coach from reducing courts below the current registrations.
@@ -250,6 +259,7 @@ Local native builds are also possible: `npx expo run:android` (Android Studio) a
 
 ### Cancellations
 
+- **Cancellation deadline:** a player can cancel until 24 hours before the lesson (`cancel_registration` returns `CANCELLATION_DEADLINE_PASSED` after that). The lesson screen shows until when cancelling is possible. The coach can still free a spot by deactivating an account.
 - Cancelling sets `status = 'cancelled'`, `cancelled_at` and the optional `cancellation_reason`. Rows are **never deleted**, so history is kept. Re-joining reactivates the same row and clears the old reason.
 - Lessons are cancelled by status too (and can be reinstated). They are never deleted.
 - Deactivating a player cancels their registrations for lessons that have not started, so the spots are freed.
