@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
-import { colors, radius, spacing, stroke } from '@/constants/theme';
+import { colors, fonts, radius, spacing, stroke } from '@/constants/theme';
 import { useT } from '@/i18n';
 import type { AttendanceStatus } from '@/types/models';
 
@@ -76,5 +76,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   pressed: { opacity: 0.7 },
-  label: { fontWeight: '700' },
+  label: { fontFamily: fonts.bold },
 });

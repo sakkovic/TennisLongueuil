@@ -1,56 +1,90 @@
 import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 
 /**
- * SaKKa.Tennis design tokens.
+ * Four brand colours only. Every other token is a mix of these.
  *
- * Soft teal on a mist background so white cards and 1px borders stay visible
- * without neon contrast. Use these tokens everywhere; never hard-code colours.
+ *  1. ink   #1A231C  text, headers, sign-out
+ *  2. green #7CB342  actions, active tab, available
+ *  3. lime  #D7F23F  dates, selected week, almost-full
+ *  4. white #FFFFFF  cards, buttons-on-green
  */
 export const brand = {
-  aqua: '#14B4B0',
-  aquaDeep: '#0E9A97',
-  aquaLight: '#5DCECB',
-  ink: '#122022',
+  ink: '#1A231C',
+  green: '#7CB342',
+  lime: '#D7F23F',
+  white: '#FFFFFF',
 } as const;
 
+function hexToRgb(hex: string): [number, number, number] {
+  const value = hex.replace('#', '');
+  return [
+    parseInt(value.slice(0, 2), 16),
+    parseInt(value.slice(2, 4), 16),
+    parseInt(value.slice(4, 6), 16),
+  ];
+}
+
+function mix(from: string, to: string, amount: number): `#${string}` {
+  const [fr, fg, fb] = hexToRgb(from);
+  const [tr, tg, tb] = hexToRgb(to);
+  const hex = (channel: number) => Math.round(channel).toString(16).padStart(2, '0');
+  return `#${hex(fr + (tr - fr) * amount)}${hex(fg + (tg - fg) * amount)}${hex(fb + (tb - fb) * amount)}`;
+}
+
+const ink = brand.ink;
+const green = brand.green;
+const lime = brand.lime;
+const white = brand.white;
+/** Page wash: a drop of ink in white. */
+const paper = mix(white, ink, 0.04);
+
 export const colors = {
-  primary: brand.aqua,
-  primaryPressed: brand.aquaDeep,
-  /** Soft aqua wash for highlighted areas. */
-  primarySoft: '#D9F2F1',
-  /** Text and icons placed on aqua. */
-  onPrimary: '#042221',
+  primary: green,
+  primaryPressed: mix(green, ink, 0.22),
+  primarySoft: mix(white, green, 0.18),
+  onPrimary: white,
 
-  accent: '#0D6F6C',
-  accentPressed: '#0A5856',
-  onAccent: '#042221',
+  navy: ink,
+  navySoft: mix(white, ink, 0.06),
+  onNavy: white,
 
-  background: '#F2F5F5',
-  surface: '#FFFFFF',
-  surfaceMuted: '#DEE7E7',
-  surfacePressed: '#D0DCDC',
-  tabBar: '#FFFFFF',
-  border: '#6F8A8A',
-  borderStrong: '#4D6868',
+  lime,
+  limeSoft: mix(white, lime, 0.4),
+  onLime: ink,
+  accent: lime,
+  accentPressed: mix(lime, ink, 0.12),
+  onAccent: ink,
 
-  text: brand.ink,
-  textMuted: '#3F5556',
-  textSubtle: '#6B8081',
+  background: paper,
+  surface: white,
+  surfaceMuted: mix(white, ink, 0.08),
+  surfacePressed: mix(white, ink, 0.12),
+  tabBar: white,
+  header: ink,
+  border: mix(white, ink, 0.12),
+  borderStrong: mix(white, ink, 0.2),
 
-  success: '#1A9A64',
-  successSoft: '#E6F7EF',
-  warning: '#C07A12',
-  warningSoft: '#FFF4E0',
-  danger: '#D64545',
-  dangerSoft: '#FDECEC',
-  dangerBorder: '#F3C4C4',
-  info: '#2B6CB0',
-  infoSoft: '#E8F1FC',
+  text: ink,
+  textMuted: mix(ink, white, 0.38),
+  textSubtle: mix(ink, white, 0.52),
 
-  overlay: 'rgba(11, 26, 28, 0.4)',
-  courtLine: 'rgba(20, 180, 176, 0.38)',
-  glow: 'rgba(20, 180, 176, 0.16)',
-  glowFaint: 'rgba(20, 180, 176, 0.08)',
+  disabled: mix(white, ink, 0.08),
+  disabledText: mix(ink, white, 0.38),
+
+  success: green,
+  successSoft: mix(white, green, 0.16),
+  warning: ink,
+  warningSoft: mix(white, lime, 0.4),
+  danger: ink,
+  dangerSoft: mix(white, ink, 0.06),
+  dangerBorder: mix(white, ink, 0.22),
+  info: ink,
+  infoSoft: mix(white, ink, 0.06),
+
+  overlay: 'rgba(26, 35, 28, 0.4)',
+  courtLine: 'rgba(124, 179, 66, 0.32)',
+  glow: 'rgba(124, 179, 66, 0.16)',
+  glowFaint: 'rgba(124, 179, 66, 0.08)',
 } as const;
 
 export const spacing = {
@@ -76,28 +110,37 @@ export const radius = {
 export const touchTarget = 48;
 
 /**
- * Playfair Display (the elegant serif of the SaKKa.Tennis wordmark) is used for
- * the brand name and large headings only; everything else uses the system font
- * for readability. Loaded in app/_layout.tsx.
+ * Plus Jakarta Sans for the whole interface: clean, modern and identical on
+ * iOS, Android and web. Playfair Display, the serif of the SaKKa.Tennis logo,
+ * is kept for the brand wordmark only. Loaded in app/_layout.tsx.
+ *
+ * Each weight is its own font file, so pick the weight with `fontFamily`
+ * (fonts.bold…), never with `fontWeight`: Android ignores fontWeight on
+ * custom fonts.
  */
 export const fonts = {
-  display: 'PlayfairDisplay_700Bold',
-  displaySemiBold: 'PlayfairDisplay_600SemiBold',
+  /** The SaKKa.Tennis wordmark only. */
+  brand: 'PlayfairDisplay_700Bold',
+  regular: 'PlusJakartaSans_400Regular',
+  medium: 'PlusJakartaSans_500Medium',
+  semiBold: 'PlusJakartaSans_600SemiBold',
+  bold: 'PlusJakartaSans_700Bold',
+  extraBold: 'PlusJakartaSans_800ExtraBold',
 } as const;
 
 export const typography = {
-  display: { fontFamily: fonts.display, fontSize: 30, lineHeight: 38, letterSpacing: 0.2 },
-  title: { fontFamily: fonts.displaySemiBold, fontSize: 23, lineHeight: 30, letterSpacing: 0.2 },
-  heading: { fontSize: 18, lineHeight: 24, fontWeight: '700' },
-  body: { fontSize: 16, lineHeight: 22, fontWeight: '400' },
-  bodyStrong: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
-  label: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  caption: { fontSize: 13, lineHeight: 18, fontWeight: '500' },
+  display: { fontFamily: fonts.extraBold, fontSize: 28, lineHeight: 36, letterSpacing: -0.4 },
+  title: { fontFamily: fonts.bold, fontSize: 22, lineHeight: 28, letterSpacing: -0.2 },
+  heading: { fontFamily: fonts.bold, fontSize: 18, lineHeight: 24 },
+  body: { fontFamily: fonts.regular, fontSize: 16, lineHeight: 22 },
+  bodyStrong: { fontFamily: fonts.semiBold, fontSize: 16, lineHeight: 22 },
+  label: { fontFamily: fonts.semiBold, fontSize: 14, lineHeight: 20 },
+  caption: { fontFamily: fonts.medium, fontSize: 13, lineHeight: 18 },
   overline: {
+    fontFamily: fonts.bold,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '700',
-    letterSpacing: 1.4,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
 } satisfies Record<string, TextStyle>;
@@ -108,23 +151,23 @@ export const stroke = 1;
 export const shadow = {
   card: Platform.select<ViewStyle>({
     ios: {
-      shadowColor: '#122022',
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
+      shadowColor: ink,
+      shadowOpacity: 0.06,
+      shadowRadius: 10,
       shadowOffset: { width: 0, height: 2 },
     },
-    android: { elevation: 2 },
+    android: { elevation: 1 },
     default: {
-      shadowColor: '#122022',
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
+      shadowColor: ink,
+      shadowOpacity: 0.06,
+      shadowRadius: 10,
       shadowOffset: { width: 0, height: 2 },
     },
   }),
   glow: Platform.select<ViewStyle>({
     ios: {
-      shadowColor: brand.aqua,
-      shadowOpacity: 0.28,
+      shadowColor: green,
+      shadowOpacity: 0.22,
       shadowRadius: 12,
       shadowOffset: { width: 0, height: 4 },
     },
@@ -132,12 +175,12 @@ export const shadow = {
   }),
 } as const;
 
-/** Level badge colours, chosen by level rank so new levels need no code change. */
+/** Level badges stay inside the four colours: green wash, ink wash, lime, green tint. */
 const levelPalette = [
-  { background: '#E6F8F8', text: '#0A6E6C' },
-  { background: '#E8F1FF', text: '#2B5EA7' },
-  { background: '#F1ECFF', text: '#5B4AA8' },
-  { background: '#FFF1E4', text: '#A45B12' },
+  { background: mix(white, green, 0.2), text: ink },
+  { background: mix(white, ink, 0.08), text: ink },
+  { background: mix(white, lime, 0.45), text: ink },
+  { background: mix(white, green, 0.12), text: mix(ink, green, 0.25) },
 ] as const;
 
 export function levelColors(rank: number | null | undefined) {

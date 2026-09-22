@@ -1,5 +1,5 @@
 /**
- * Club rules: registration closes 4 hours before a lesson (unless the lesson
+ * Club rules: registration is open until the lesson starts (unless the coach
  * sets an earlier deadline) and players can cancel until 24 hours before.
  */
 import type { Client } from 'pg';
@@ -34,23 +34,21 @@ async function registerDirectly(lessonId: string, playerId: string) {
 }
 
 describe('registration deadline', () => {
-  it('closes registration 4 hours before the lesson when no deadline is set', async () => {
-    const player = await createUser(db, 'Late Joiner');
-    const lesson = await createLesson(db, { startsInHours: 3.5 });
-
-    await expect(joinLesson(db, player.id, lesson.id)).rejects.toThrow(
-      'REGISTRATION_DEADLINE_PASSED',
-    );
-    expect(await countJoined(db, lesson.id)).toBe(0);
-  });
-
-  it('accepts registrations until 4 hours before the lesson', async () => {
-    const player = await createUser(db, 'On Time');
-    const lesson = await createLesson(db, { startsInHours: 4.5 });
+  it('welcomes players until the lesson starts when no deadline is set', async () => {
+    const player = await createUser(db, 'Last Minute');
+    const lesson = await createLesson(db, { startsInHours: 0.1 });
 
     await expect(joinLesson(db, player.id, lesson.id)).resolves.toMatchObject({
       status: 'joined',
     });
+  });
+
+  it('closes registration once the lesson has started', async () => {
+    const player = await createUser(db, 'Late Joiner');
+    const lesson = await createLesson(db, { startsInHours: -0.1 });
+
+    await expect(joinLesson(db, player.id, lesson.id)).rejects.toThrow('LESSON_STARTED');
+    expect(await countJoined(db, lesson.id)).toBe(0);
   });
 
   it('honours an earlier deadline chosen by the coach', async () => {

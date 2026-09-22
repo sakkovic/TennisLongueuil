@@ -73,11 +73,12 @@ export function slotLabel(slot: PosterSlot): {
     case 'full':
       return { key: 'full' };
     case 'closed':
-      return { key: 'registrationClosed' };
+      return { key: 'pillClosed' };
     default:
+      // Short on purpose: the pill is narrow ("3 LEFT", "3 PLACES").
       return slot.spotsLeft === 1
-        ? { key: 'spotsLeftOne' }
-        : { key: 'spotsLeftOther', vars: { count: slot.spotsLeft } };
+        ? { key: 'pillSpotsOne' }
+        : { key: 'pillSpotsOther', vars: { count: slot.spotsLeft } };
   }
 }
 

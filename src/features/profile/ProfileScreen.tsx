@@ -70,9 +70,8 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
   };
 
   return (
-    <ScreenContainer edges={['top']} onRefresh={retryProfile} refreshing={isRetryingProfile}>
+    <ScreenContainer onRefresh={retryProfile} refreshing={isRetryingProfile}>
       <PlayerProfileCard
-        title={t('profile')}
         member={member}
         levelRank={findLevel(levels, member.player_level_id)?.rank}
         onChangePhoto={pickPhoto}

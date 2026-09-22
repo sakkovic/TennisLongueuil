@@ -31,8 +31,9 @@ export function CapacityIndicator({
   const t = useT();
   const full = isLessonFull(registered, capacity);
   const remaining = spotsRemaining(registered, capacity);
+  const almostFull = !full && remaining <= 2;
   const large = size === 'large';
-  const fillColor = full ? colors.warning : colors.primary;
+  const fillColor = full ? colors.textMuted : colors.primary;
   // One segment per spot; fall back to a continuous bar for big lessons.
   const segments = capacity <= 12 ? capacity : 0;
 
@@ -64,8 +65,14 @@ export function CapacityIndicator({
               {t('full')}
             </AppText>
           </View>
+        ) : almostFull ? (
+          <View style={styles.almostBadge}>
+            <AppText variant="overline" style={styles.almostText}>
+              {formatSpotsRemaining(registered, capacity)}
+            </AppText>
+          </View>
         ) : (
-          <AppText variant="label" tone={remaining === 1 ? 'warning' : 'success'}>
+          <AppText variant="label" tone="success">
             {formatSpotsRemaining(registered, capacity)}
           </AppText>
         )}
@@ -106,12 +113,19 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   countRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   fullBadge: {
-    backgroundColor: colors.warning,
+    backgroundColor: colors.textMuted,
     paddingHorizontal: spacing.sm + 2,
     paddingVertical: spacing.xxs + 1,
     borderRadius: radius.pill,
   },
   fullText: { color: colors.onPrimary, fontSize: 11, lineHeight: 14 },
+  almostBadge: {
+    backgroundColor: colors.lime,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xxs + 1,
+    borderRadius: radius.pill,
+  },
+  almostText: { color: colors.onLime, fontSize: 11, lineHeight: 14 },
   segments: { flexDirection: 'row', gap: spacing.xs },
   segment: { flex: 1, height: 6, borderRadius: radius.pill },
   segmentLarge: { height: 8 },

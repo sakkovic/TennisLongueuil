@@ -1,8 +1,12 @@
+import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 import {
-  PlayfairDisplay_600SemiBold,
-  PlayfairDisplay_700Bold,
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
   useFonts,
-} from '@expo-google-fonts/playfair-display';
+} from '@expo-google-fonts/plus-jakarta-sans';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { DefaultTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -38,11 +42,15 @@ const navigationTheme: Theme = {
 };
 
 export default function RootLayout() {
-  // The brand serif is used for headings; keep the splash screen until it is ready
-  // (on a loading error the app falls back to the system font).
+  // Keep the splash screen until the fonts are ready (on a loading error the
+  // app falls back to the system font).
   const [fontsLoaded, fontError] = useFonts({
-    PlayfairDisplay_600SemiBold,
     PlayfairDisplay_700Bold,
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
   });
 
   if (!config.isSupabaseConfigured) return <MissingConfiguration />;

@@ -123,6 +123,11 @@ export function formatWeekdayShort(value: DateInput): string {
   return shortWeekday(toDate(value));
 }
 
+/** "Sep" / "sept." */
+export function formatMonthShort(value: DateInput): string {
+  return shortMonth(toDate(value));
+}
+
 /** "Sep 21" */
 export function formatMonthDayShort(value: DateInput): string {
   const date = toDate(value);

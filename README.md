@@ -11,7 +11,7 @@ The coach creates lessons. Players see them, join with one tap, see who else is 
 
 ### Branding
 
-- Dark + aqua theme sampled from the SaKKa.Tennis artwork in `assets/sakkatennis_*.png`. All colours, fonts (Playfair Display for the wordmark and headings) and spacing live in `src/constants/theme.ts`.
+- Aqua theme sampled from the SaKKa.Tennis artwork in `assets/sakkatennis_*.png`. All colours, fonts and spacing live in `src/constants/theme.ts`: Plus Jakarta Sans for the interface, Playfair Display (the logo's serif) for the brand wordmark only.
 - The home screens open with a flyer-style landing (`src/features/home/SessionPoster.tsx`): emblem over a court drawing, the wordmark, "120-minute sessions", the location, the next sessions with spots left, the price and one big call to action. Visitors see it before signing in (`app/(auth)/welcome.tsx`), players on Home, and the coach on the coach home.
 - The club offer (coach, CP1, session length, price) lives in `src/constants/brand.ts`.
 - App icon, Android adaptive icon, splash and the in-app emblem (`assets/brand/emblem.png`) were generated from the emblem artwork.
@@ -253,7 +253,7 @@ Local native builds are also possible: `npx expo run:android` (Android Studio) a
 - Default title "Tennis Lesson", default location **Complexe Sportif Longueuil** (stored per lesson, so other locations are possible), default length 120 minutes.
 - **Weekly series:** the coach can repeat a lesson every week (same weekday, time and courts) for 2–26 weeks. The series is created in one insert (all or nothing) and its lessons share a `series_id`. Each week is still its own lesson, but when the coach edits or cancels one, the app asks: **this lesson only**, or **this and the following ones**. A series edit keeps the same wall-clock time every week (daylight saving included) and is saved by `admin_update_lessons` in a single statement, so it applies to every lesson or to none.
 - **No double booking:** when a new lesson (or some weeks of a series) would land on a time and place that is already booked, those weeks are skipped by default; "Create anyway" is the exception.
-- **Registration deadline:** registration closes 4 hours before the start, or earlier if the coach chooses (6 h, 12 h, 1–3 days). `join_lesson` enforces this even for lessons without an explicit deadline.
+- **Registration:** players are welcome until the lesson starts, as long as there is a spot. The coach can close registration earlier for a given lesson (1 h, 2 h, 4 h, 12 h or 1 day before). `join_lesson` enforces both.
 - `capacity` is a generated column: **`court_count × 4`**. The app only displays it.
 - `join_lesson(p_lesson_id)` runs entirely in PostgreSQL. It identifies the player with `auth.uid()`, checks the account, lesson status, start time, registration open/deadline and duplicates, then **locks the lesson row** (`FOR NO KEY UPDATE`). While the lock is held it counts active registrations and inserts or reactivates the registration. Concurrent joins queue on the lock, so exactly one player gets the last spot. The others receive `LESSON_FULL`, which the app shows as "Sorry, this lesson has just become full."
 - As a second safety net, `lessons.registered_count` is maintained by a trigger and protected by a `CHECK (registered_count <= court_count * 4)`. Even a write that bypassed `join_lesson` could not overbook a lesson. The same check stops the coach from reducing courts below the current registrations.
@@ -263,7 +263,7 @@ Local native builds are also possible: `npx expo run:android` (Android Studio) a
 
 - When a lesson is full, players can **join the waitlist** (`join_waitlist`). Everyone sees who is waiting and in which order; the app shows each player their place ("You're #2 in line").
 - When a spot opens, the **first player in line is moved in automatically**, in the same transaction and under the same lesson lock as `join_lesson`, so capacity still holds under concurrency. A spot opens when a player cancels, when the coach deactivates a registered player, or when the coach adds courts or reopens registration. Promotion happens in database triggers, so every path is covered.
-- Promotion stops when registration closes (4 hours before, or the lesson's deadline): nobody is moved in at the last minute. Since cancellations close 24 hours before, a promoted player normally still has time to cancel.
+- Automatic promotion stops 4 hours before the lesson (or when registration closes): nobody is moved in at the last minute without knowing it. After that, a free spot goes to whoever joins first, waiting players included.
 - A promoted player sees "A spot opened, you're in!" on their home screen and lesson, and the app schedules their reminder. Leaving the waitlist is possible until the lesson starts (it frees no spot).
 - Deactivating an account also takes the player off every waitlist.
 

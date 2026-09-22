@@ -55,6 +55,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
   selected: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.navy,
   },
 });

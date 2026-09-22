@@ -10,8 +10,6 @@ import type { Member } from '@/types/models';
 
 interface PlayerProfileCardProps {
   member: Member;
-  /** Screen title shown in the top band, so the Profile tab needs no separate header. */
-  title?: string;
   levelRank?: number | null;
   /** When provided, shows a camera button on the photo. */
   onChangePhoto?: () => void;
@@ -23,7 +21,6 @@ interface PlayerProfileCardProps {
 /** The member card: photo, name, level badge, contact details and upcoming lessons. */
 export function PlayerProfileCard({
   member,
-  title,
   levelRank,
   onChangePhoto,
   uploadingPhoto = false,
@@ -36,17 +33,6 @@ export function PlayerProfileCard({
     <View style={styles.card}>
       <View style={styles.hero}>
         <View style={styles.courtLine} />
-        {title ? (
-          <AppText
-            variant="title"
-            style={styles.heroTitle}
-            numberOfLines={1}
-            maxFontSizeMultiplier={1.2}
-            accessibilityRole="header"
-          >
-            {title}
-          </AppText>
-        ) : null}
       </View>
       {/* In normal flow (negative margin) so the camera button stays on top and touchable. */}
       <View style={styles.photoWrapper}>
@@ -80,14 +66,15 @@ export function PlayerProfileCard({
         <AppText variant="title" style={styles.center} accessibilityRole="header">
           {member.full_name}
         </AppText>
-        {isCoach ? (
-          <StatusBadge label={t('coach')} tone="primary" icon="ribbon-outline" />
-        ) : (
-          <LevelBadge name={member.player_level_name} rank={levelRank} size="lg" />
-        )}
-        <AppText tone="muted" style={styles.center}>
-          {isCoach ? t('coachAdmin') : t('tennisMember')}
-        </AppText>
+        {/* Badge and role on one line, centred under the name. */}
+        <View style={styles.roleRow}>
+          {isCoach ? (
+            <StatusBadge label={t('coach')} tone="primary" icon="ribbon-outline" />
+          ) : (
+            <LevelBadge name={member.player_level_name} rank={levelRank} size="lg" />
+          )}
+          <AppText tone="muted">{isCoach ? t('coachAdmin') : t('tennisMember')}</AppText>
+        </View>
         {showStatus || !member.active ? <AccountStateBadge member={member} /> : null}
       </View>
 
@@ -99,9 +86,7 @@ export function PlayerProfileCard({
             {t('upcomingLessons')}
           </AppText>
           <View style={styles.statBubble}>
-            <AppText variant="heading" tone="primary">
-              {member.upcoming_lessons_count}
-            </AppText>
+            <AppText variant="heading">{member.upcoming_lessons_count}</AppText>
           </View>
         </View>
       </View>
@@ -145,7 +130,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: stroke,
     borderBottomColor: colors.border,
   },
-  // A subtle aqua court service line across the header.
+  // A subtle court service line across the header.
   courtLine: {
     position: 'absolute',
     top: 48,
@@ -153,15 +138,13 @@ const styles = StyleSheet.create({
     right: 0,
     height: 2,
     backgroundColor: colors.primary,
-    opacity: 0.35,
+    opacity: 0.28,
   },
-  // Top-left, above the photo, which starts 40 points down the 96-point band.
-  heroTitle: { position: 'absolute', top: spacing.sm, left: spacing.lg, maxWidth: '30%' },
   photoWrapper: { alignSelf: 'center', marginTop: -56 },
   photoRing: {
     borderRadius: 60,
     borderWidth: 3,
-    borderColor: colors.primary,
+    borderColor: colors.navy,
     backgroundColor: colors.surface,
     padding: 2,
   },
@@ -186,6 +169,13 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   center: { textAlign: 'center' },
+  roleRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
   details: {
     borderTopWidth: stroke,
     borderTopColor: colors.border,

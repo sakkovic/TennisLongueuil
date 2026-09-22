@@ -42,7 +42,7 @@ export function BrandMark({ layout = 'inline', size = 'md', subtitle }: BrandMar
       <View style={stacked ? styles.stackedText : styles.inlineText}>
         <AppText
           variant="display"
-          tone="primary"
+          tone="navy"
           style={{ fontSize: dims.font, lineHeight: dims.line }}
           maxFontSizeMultiplier={1.2}
           numberOfLines={1}

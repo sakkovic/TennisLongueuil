@@ -41,15 +41,15 @@ describe('getLessonAvailability', () => {
     ).toMatchObject({ state: 'deadline_passed', canJoin: false });
   });
 
-  it('closes registration 4 hours before the lesson when no deadline is set', () => {
+  it('keeps registration open until the lesson starts when no deadline is set', () => {
     const lesson = makeLesson({ registration_deadline: null });
-    expect(getLessonAvailability(lesson, false, hoursBeforeStart(5)).canJoin).toBe(true);
-    expect(getLessonAvailability(lesson, false, hoursBeforeStart(3))).toMatchObject({
-      state: 'deadline_passed',
+    expect(getLessonAvailability(lesson, false, hoursBeforeStart(0.1)).canJoin).toBe(true);
+    expect(getLessonAvailability(lesson, false, hoursBeforeStart(-0.1))).toMatchObject({
+      state: 'in_progress',
       canJoin: false,
     });
     expect(getLessonAvailability(lesson, false, NOW).registrationClosesAt.toISOString()).toBe(
-      '2026-09-28T18:00:00.000Z',
+      '2026-09-28T22:00:00.000Z',
     );
   });
 
@@ -79,7 +79,10 @@ describe('getLessonAvailability', () => {
 
   it('closes the waitlist with registration', () => {
     const full = makeLesson({ registered_count: 4 });
-    expect(getLessonAvailability(full, false, hoursBeforeStart(3)).canJoinWaitlist).toBe(false);
+    const closedEarly = { ...full, registration_deadline: '2026-09-27T22:00:00.000Z' };
+    expect(getLessonAvailability(closedEarly, false, hoursBeforeStart(3)).canJoinWaitlist).toBe(
+      false,
+    );
     expect(
       getLessonAvailability({ ...full, registration_open: false }, false, NOW).canJoinWaitlist,
     ).toBe(false);
@@ -90,5 +93,14 @@ describe('getLessonAvailability', () => {
     const result = getLessonAvailability(lesson, 'waitlisted', hoursBeforeStart(2));
     expect(result).toMatchObject({ state: 'waitlisted', canCancel: true, canJoinWaitlist: false });
     expect(AVAILABILITY_LABEL_KEYS[result.state]).toBe('onWaitlist');
+  });
+
+  it('lets a waiting player grab a free spot once the waitlist has stopped moving', () => {
+    const lesson = makeLesson({ registered_count: 3 });
+    expect(getLessonAvailability(lesson, 'waitlisted', hoursBeforeStart(2))).toMatchObject({
+      state: 'waitlisted',
+      canJoin: true,
+      canCancel: true,
+    });
   });
 });

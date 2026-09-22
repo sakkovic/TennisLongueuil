@@ -17,7 +17,7 @@ const tones: Record<BadgeTone, { background: string; text: string }> = {
   danger: { background: colors.dangerSoft, text: colors.danger },
   info: { background: colors.infoSoft, text: colors.info },
   neutral: { background: colors.surfaceMuted, text: colors.textMuted },
-  accent: { background: colors.accent, text: colors.onAccent },
+  accent: { background: colors.lime, text: colors.onLime },
   primary: { background: colors.primary, text: colors.onPrimary },
 };
 

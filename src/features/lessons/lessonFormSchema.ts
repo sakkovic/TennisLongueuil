@@ -67,14 +67,11 @@ export function createLessonFormSchema({ requireFutureStart }: { requireFutureSt
           `Keep the description under ${MAX_DESCRIPTION_LENGTH} characters.`,
         ),
       registrationOpen: z.boolean(),
-      /** Minutes before the start when registration closes (club rule: at least 4 hours). */
+      /** Minutes before the start when registration closes (0 = until the lesson starts). */
       deadlineOffsetMinutes: z
         .number()
         .int()
-        .min(
-          REGISTRATION_LEAD_MINUTES,
-          'Registration must close at least 4 hours before the lesson.',
-        ),
+        .min(REGISTRATION_LEAD_MINUTES, 'Registration must close before the lesson starts.'),
       repeatWeekly: z.boolean(),
       repeatWeeks: z.number().int(),
     })
@@ -123,7 +120,7 @@ export function occurrenceStarts(values: LessonFormValues): Date[] {
   return Array.from({ length: occurrenceCount(values) }, (_, week) => addWeeks(start, week));
 }
 
-/** New lesson: tomorrow at 6:00 PM, 1 court, weekly, closing 4 hours ahead. */
+/** New lesson: tomorrow at 6:00 PM, 1 court, weekly, open until it starts. */
 export function defaultLessonFormValues(now: Date = new Date()): LessonFormValues {
   const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   return {

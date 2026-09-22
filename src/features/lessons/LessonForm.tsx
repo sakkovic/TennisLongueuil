@@ -249,7 +249,7 @@ export function LessonForm({
         ) : null}
 
         <View style={styles.summary} accessibilityLiveRegion="polite">
-          <AppText variant="label" tone="primary">
+          <AppText variant="label" tone="navy">
             {formatLongDate(start)}
           </AppText>
           <AppText variant="caption" tone="muted">
@@ -303,7 +303,7 @@ export function LessonForm({
                 )}
               />
               <View style={styles.summary} accessibilityLiveRegion="polite">
-                <AppText variant="label" tone="primary">
+                <AppText variant="label" tone="navy">
                   {t('nLessons', { count })}
                 </AppText>
                 <AppText variant="caption" tone="muted">
@@ -358,7 +358,7 @@ export function LessonForm({
           )}
         />
         <View style={styles.summary} accessibilityLiveRegion="polite">
-          <AppText variant="label" tone="primary">
+          <AppText variant="label" tone="navy">
             {t('capacityLabel', {
               count: t(capacity === 1 ? 'playerOne' : 'playerOther', { count: capacity }),
             })}
@@ -426,7 +426,7 @@ export function LessonForm({
               label={t('closesBefore')}
               options={withCurrent(DEADLINE_OFFSET_CHOICES, field.value).map((minutes) => ({
                 value: minutes,
-                label: formatLeadTime(minutes),
+                label: minutes === 0 ? t('untilStart') : formatLeadTime(minutes),
               }))}
               value={field.value}
               onChange={field.onChange}
@@ -434,16 +434,18 @@ export function LessonForm({
           )}
         />
         <AppText variant="caption" tone="muted">
-          {repeating
-            ? t('eachCloses', {
-                lead: formatLeadTime(deadlineOffsetMinutes),
-                date: formatLongDate(deadline),
-                time: formatTime(deadline),
-              })
-            : t('closesAt', {
-                date: formatLongDate(deadline),
-                time: formatTime(deadline),
-              })}
+          {deadlineOffsetMinutes === 0
+            ? t('openUntilStart')
+            : repeating
+              ? t('eachCloses', {
+                  lead: formatLeadTime(deadlineOffsetMinutes),
+                  date: formatLongDate(deadline),
+                  time: formatTime(deadline),
+                })
+              : t('closesAt', {
+                  date: formatLongDate(deadline),
+                  time: formatTime(deadline),
+                })}
         </AppText>
         {deadline <= new Date() ? (
           <Banner

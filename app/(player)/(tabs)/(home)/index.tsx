@@ -10,8 +10,6 @@ import { slotsFromLessons } from '@/features/home/posterSessions';
 import { SessionPoster } from '@/features/home/SessionPoster';
 import { findMyRegistration } from '@/features/lessons/api';
 import { useLessonsRealtime, useUpcomingLessons } from '@/features/lessons/hooks';
-import { getLessonAvailability } from '@/features/lessons/lessonState';
-import type { Lesson } from '@/features/lessons/api';
 import { scheduleLessonReminder } from '@/features/notifications/reminders';
 import { useT } from '@/i18n';
 import { formatDateTime } from '@/utils/date';
@@ -27,13 +25,6 @@ export default function HomeScreen() {
 
   const now = new Date();
   const upcoming = lessons.data ?? [];
-  const isMine = (lesson: Lesson) => findMyRegistration(lesson, member.id)?.status === 'joined';
-  const nextOpen = upcoming.find(
-    (lesson) => getLessonAvailability(lesson, isMine(lesson), now).canJoin,
-  );
-  const nextMine = upcoming.find(
-    (lesson) => lesson.status === 'scheduled' && isMine(lesson) && new Date(lesson.end_time) > now,
-  );
   const openLesson = (lessonId: string) =>
     router.push({ pathname: '/lesson/[id]', params: { id: lessonId } });
 
@@ -68,19 +59,13 @@ export default function HomeScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promotedKey]);
 
-  // The poster's big button books the next open session, or opens the member's own.
-  const primaryAction = nextOpen
+  // The two tiles already open the next lessons. The CTA goes to the full list.
+  const primaryAction = upcoming.length
     ? {
         label: t('bookYourSpot'),
-        onPress: () => openLesson(nextOpen.id),
+        onPress: () => router.navigate('/lessons'),
       }
-    : nextMine
-      ? {
-          label: t('viewMyNextLesson'),
-          icon: 'calendar' as const,
-          onPress: () => openLesson(nextMine.id),
-        }
-      : { label: t('newSessionsSoon'), onPress: () => undefined, disabled: true };
+    : { label: t('newSessionsSoon'), onPress: () => undefined, disabled: true };
 
   return (
     <ScreenContainer

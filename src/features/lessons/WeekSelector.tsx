@@ -21,7 +21,8 @@ export function WeekSelector({ weeks, value, onChange }: WeekSelectorProps) {
   return (
     <ScrollSelector
       label={t('week')}
-      itemWidth={88}
+      hideLabel
+      itemWidth={104}
       value={value}
       onChange={onChange}
       options={weeks.map((week) => {

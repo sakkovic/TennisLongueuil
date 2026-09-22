@@ -91,7 +91,7 @@ export function SessionPoster({
           slots.map((slot) => <SlotTile key={slot.id} slot={slot} onPress={onPressSlot} />)
         )}
         <View style={[styles.tile, styles.priceTile]}>
-          <Ionicons name="tennisball" size={14} color={colors.primary} />
+          <Ionicons name="tennisball" size={14} color={colors.lime} />
           <AppText style={styles.price} maxFontSizeMultiplier={1.2}>
             ${HOURLY_RATE}
           </AppText>
@@ -124,7 +124,7 @@ export function SessionPoster({
   );
 }
 
-/** A top-down tennis court in faint aqua lines, with the emblem as the ball. */
+/** A top-down tennis court in faint green lines, with the emblem as the ball. */
 function CourtHero() {
   return (
     <View
@@ -148,29 +148,39 @@ function CourtHero() {
 }
 
 const pillColors: Record<PosterSlotTone, { background: string; text: string }> = {
-  open: { background: colors.primary, text: colors.onPrimary },
-  registered: { background: colors.success, text: colors.onPrimary },
-  full: { background: colors.warning, text: colors.onPrimary },
+  open: { background: colors.successSoft, text: colors.success },
+  registered: { background: colors.successSoft, text: colors.success },
+  full: { background: colors.surfaceMuted, text: colors.textMuted },
   closed: { background: colors.surfaceMuted, text: colors.textMuted },
 };
 
 function SlotTile({ slot, onPress }: { slot: PosterSlot; onPress?: (id: string) => void }) {
   const t = useT();
   const label = slotLabel(slot);
-  const pill = pillColors[slot.tone];
+  const pill =
+    slot.tone === 'open' && slot.spotsLeft <= 2
+      ? { background: colors.lime, text: colors.onLime }
+      : pillColors[slot.tone];
   const day = formatMonthDayShort(slot.startTime);
   const time = formatTime(slot.startTime);
   const text = t(label.key, label.vars);
+  // The pill is abbreviated; screen readers get the full phrase.
+  const spoken =
+    slot.tone === 'open'
+      ? t(slot.spotsLeft === 1 ? 'spotsLeftOne' : 'spotsLeftOther', { count: slot.spotsLeft })
+      : slot.tone === 'closed'
+        ? t('registrationClosed')
+        : text;
 
   return (
     <Pressable
       onPress={onPress ? () => onPress(slot.id) : undefined}
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={`${day}, ${time}, ${text}`}
+      accessibilityLabel={`${day}, ${time}, ${spoken}`}
       style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
     >
-      <Ionicons name="tennisball" size={14} color={colors.primary} />
+      <Ionicons name="tennisball" size={14} color={colors.navy} />
       <AppText style={styles.day} numberOfLines={1} maxFontSizeMultiplier={1.2}>
         {day}
       </AppText>
@@ -211,13 +221,21 @@ function PosterCta({ label, sublabel, icon = 'tennisball', onPress, disabled }: 
         disabled && styles.ctaDisabled,
       ]}
     >
-      <Ionicons name={icon} size={22} color={colors.onPrimary} />
+      <Ionicons name={icon} size={22} color={disabled ? colors.disabledText : colors.onPrimary} />
       <View style={styles.ctaText}>
-        <AppText style={styles.ctaLabel} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+        <AppText
+          style={[styles.ctaLabel, disabled && styles.ctaDisabledText]}
+          numberOfLines={1}
+          maxFontSizeMultiplier={1.2}
+        >
           {label}
         </AppText>
         {sublabel ? (
-          <AppText style={styles.ctaSublabel} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+          <AppText
+            style={[styles.ctaSublabel, disabled && styles.ctaDisabledText]}
+            numberOfLines={1}
+            maxFontSizeMultiplier={1.2}
+          >
             {sublabel}
           </AppText>
         ) : null}
@@ -234,7 +252,7 @@ const styles = StyleSheet.create({
   poster: { gap: spacing.xl },
 
   hero: {
-    height: 148,
+    height: 128,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: -spacing.lg,
@@ -281,23 +299,25 @@ const styles = StyleSheet.create({
 
   titleBlock: { alignItems: 'center', gap: spacing.md },
   hello: {
-    fontFamily: fonts.displaySemiBold,
+    fontFamily: fonts.bold,
     fontSize: 24,
     lineHeight: 30,
-    color: colors.text,
+    letterSpacing: -0.3,
+    color: colors.navy,
     textAlign: 'center',
   },
   tagline: {
+    fontFamily: fonts.regular,
     fontSize: 16,
     lineHeight: 22,
     color: colors.textMuted,
     textAlign: 'center',
   },
   wordmark: {
-    fontFamily: fonts.display,
+    fontFamily: fonts.brand,
     fontSize: 44,
     lineHeight: 52,
-    color: colors.primary,
+    color: colors.navy,
     textAlign: 'center',
   },
 
@@ -312,22 +332,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
     borderWidth: stroke,
-    borderColor: colors.borderStrong,
+    borderColor: colors.border,
     ...shadow.card,
   },
   tilePressed: { backgroundColor: colors.surfacePressed },
   tileLoading: { minHeight: 118 },
-  priceTile: { backgroundColor: colors.primarySoft, borderColor: colors.borderStrong },
+  priceTile: { backgroundColor: colors.primarySoft, borderColor: colors.border },
   day: {
+    fontFamily: fonts.bold,
     fontSize: 11,
     lineHeight: 14,
-    fontWeight: '700',
     letterSpacing: 1,
     color: colors.textMuted,
   },
   time: {
-    fontFamily: fonts.display,
-    fontSize: 21,
+    fontFamily: fonts.extraBold,
+    fontSize: 20,
     lineHeight: 27,
     color: colors.text,
     fontVariant: ['lining-nums'],
@@ -340,23 +360,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs + 2,
   },
   pillText: {
+    fontFamily: fonts.extraBold,
     fontSize: 10,
     lineHeight: 13,
-    fontWeight: '800',
-    letterSpacing: 1,
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   price: {
-    fontFamily: fonts.display,
+    fontFamily: fonts.extraBold,
     fontSize: 28,
     lineHeight: 34,
-    color: colors.primary,
+    color: colors.navy,
     fontVariant: ['lining-nums'],
   },
   priceUnit: {
+    fontFamily: fonts.extraBold,
     fontSize: 10,
     lineHeight: 13,
-    fontWeight: '800',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     color: colors.text,
@@ -374,16 +394,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   ctaPressed: { backgroundColor: colors.primaryPressed },
-  ctaDisabled: { opacity: 0.45 },
+  ctaDisabled: { backgroundColor: colors.disabled },
+  ctaDisabledText: { color: colors.disabledText },
   ctaText: { alignItems: 'center' },
   ctaLabel: {
+    fontFamily: fonts.extraBold,
     fontSize: 15,
     lineHeight: 20,
-    fontWeight: '800',
     letterSpacing: 2,
     textTransform: 'uppercase',
     color: colors.onPrimary,
   },
-  ctaSublabel: { fontSize: 12, lineHeight: 16, fontWeight: '600', color: colors.onPrimary },
+  ctaSublabel: {
+    fontFamily: fonts.semiBold,
+    fontSize: 12,
+    lineHeight: 16,
+    color: colors.onPrimary,
+  },
   coach: { textAlign: 'center', letterSpacing: 0.5 },
 });

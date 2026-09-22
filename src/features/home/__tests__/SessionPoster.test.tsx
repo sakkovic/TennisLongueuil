@@ -19,7 +19,7 @@ describe('SessionPoster', () => {
     expect(screen.getByText("Let's improve your tennis game at")).toBeTruthy();
     expect(screen.getByText('SaKKa.Tennis')).toBeTruthy();
     expect(screen.getByText('6:00 PM')).toBeTruthy();
-    expect(screen.getByText('3 spots left')).toBeTruthy();
+    expect(screen.getByText('3 left')).toBeTruthy();
     expect(screen.getByText('Full')).toBeTruthy();
     expect(screen.getByText('$45')).toBeTruthy();
     expect(screen.getByText('Court fees split 4 ways')).toBeTruthy();

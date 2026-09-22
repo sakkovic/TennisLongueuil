@@ -58,14 +58,14 @@ it('shows anonymous visitors the next scheduled sessions with spots left', async
   expect(JSON.stringify(rows)).not.toContain('Public Player');
 });
 
-it('reports when registration closes (4 hours before by default)', async () => {
+it('reports when registration closes (at the start by default)', async () => {
   const lesson = await createLesson(db, { startsInHours: 90 });
   const { rows } = await db.query(
-    `select start_time - registration_closes_at as lead
+    `select registration_closes_at = start_time as at_start
        from public.upcoming_sessions(6) where id = $1`,
     [lesson.id],
   );
-  expect(rows[0].lead.hours).toBe(4);
+  expect(rows[0].at_start).toBe(true);
 });
 
 it('caps the number of rows', async () => {

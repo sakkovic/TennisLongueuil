@@ -10,7 +10,6 @@ export default function AdminLayout() {
   return (
     <Stack screenOptions={stackScreenOptions}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="history" options={{ title: t('lessonHistory') }} />
       <Stack.Screen name="lesson/new" options={{ title: t('newLesson'), presentation: 'modal' }} />
       <Stack.Screen name="lesson/[id]" options={{ title: t('lesson') }} />
       <Stack.Screen

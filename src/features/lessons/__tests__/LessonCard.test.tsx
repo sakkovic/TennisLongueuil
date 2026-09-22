@@ -1,4 +1,5 @@
 import { render, screen, userEvent } from '@testing-library/react-native';
+import { Text } from 'react-native';
 
 import { makeLesson, makeRegistration, NOW } from '@/test/fixtures';
 
@@ -17,7 +18,7 @@ function threePlayers() {
 }
 
 describe('LessonCard', () => {
-  it('shows date, time, location, level, capacity and participants', async () => {
+  it('shows the date block, time, place, level, capacity and participants', async () => {
     await render(
       <LessonCard
         lesson={makeLesson({ registrations: threePlayers() })}
@@ -26,8 +27,13 @@ describe('LessonCard', () => {
       />,
     );
 
-    expect(screen.getByText('MONDAY · SEP 28')).toBeTruthy();
+    // Date block: weekday, day and month (decorative, so hidden from screen readers).
+    const hidden = { includeHiddenElements: true };
+    expect(screen.getByText('MON', hidden)).toBeTruthy();
+    expect(screen.getByText('28', hidden)).toBeTruthy();
+    expect(screen.getByText('SEP', hidden)).toBeTruthy();
     expect(screen.getByText('6:00 PM – 7:30 PM')).toBeTruthy();
+    expect(screen.getByText('Group Tennis Lesson')).toBeTruthy();
     expect(screen.getByText('Complexe Sportif Longueuil')).toBeTruthy();
     expect(screen.getByText('Intermediate')).toBeTruthy();
     expect(screen.getByText('3 / 4')).toBeTruthy();
@@ -35,90 +41,63 @@ describe('LessonCard', () => {
     expect(screen.getByText('Mohamed, Alice and Zdenek')).toBeTruthy();
   });
 
-  it('offers JOIN LESSON when a spot is available', async () => {
+  it('opens the lesson when the card is tapped', async () => {
     const user = userEvent.setup();
-    const onJoin = jest.fn();
-    await render(
-      <LessonCard
-        lesson={makeLesson({ registrations: threePlayers() })}
-        currentUserId={ME}
-        onPress={jest.fn()}
-        onJoin={onJoin}
-        now={NOW}
-      />,
-    );
+    const onPress = jest.fn();
+    await render(<LessonCard lesson={makeLesson()} onPress={onPress} now={NOW} />);
 
-    await user.press(screen.getByRole('button', { name: 'Join lesson' }));
-    expect(onJoin).toHaveBeenCalledTimes(1);
+    await user.press(screen.getByRole('button', { name: /Group Tennis Lesson/ }));
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('disables the join button while the request is in flight', async () => {
+  it('shows the actions below the details, separately pressable', async () => {
+    const user = userEvent.setup();
+    const onPress = jest.fn();
     await render(
       <LessonCard
         lesson={makeLesson()}
-        currentUserId={ME}
-        onPress={jest.fn()}
-        onJoin={jest.fn()}
-        joining
+        onPress={onPress}
         now={NOW}
+        actions={<Text>Actions here</Text>}
       />,
     );
-    const button = screen.getByRole('button', { name: 'Join lesson' });
-    expect(button.props.accessibilityState).toMatchObject({ disabled: true, busy: true });
+
+    expect(screen.getByText('Actions here')).toBeTruthy();
+    await user.press(screen.getByRole('button', { name: /Group Tennis Lesson/ }));
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('shows "You\'re registered" instead of JOIN for a registered player', async () => {
+  it('marks a lesson the player is registered for', async () => {
     const lesson = makeLesson({
       registrations: [...threePlayers(), makeRegistration({ player_id: ME, name: 'Me Myself' })],
     });
-    await render(
-      <LessonCard
-        lesson={lesson}
-        currentUserId={ME}
-        onPress={jest.fn()}
-        onJoin={jest.fn()}
-        now={NOW}
-      />,
-    );
+    await render(<LessonCard lesson={lesson} currentUserId={ME} onPress={jest.fn()} now={NOW} />);
 
     expect(screen.getByText("You're registered")).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'View lesson' })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Join lesson' })).toBeNull();
   });
 
-  it('shows FULL and no join button when the lesson is full', async () => {
+  it('shows FULL when the lesson is full', async () => {
     const lesson = makeLesson({
       registrations: [...threePlayers(), makeRegistration({ name: 'Maëlys Tremblay' })],
     });
-    await render(
-      <LessonCard
-        lesson={lesson}
-        currentUserId={ME}
-        onPress={jest.fn()}
-        onJoin={jest.fn()}
-        now={NOW}
-      />,
-    );
+    await render(<LessonCard lesson={lesson} currentUserId={ME} onPress={jest.fn()} now={NOW} />);
 
     expect(screen.getByText('4 / 4')).toBeTruthy();
     expect(screen.getByText('Full')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Join lesson' })).toBeNull();
   });
 
-  it('shows a cancelled lesson clearly and without actions', async () => {
+  it('shows a cancelled lesson clearly and without capacity', async () => {
     await render(
       <LessonCard
         lesson={makeLesson({ status: 'cancelled', registrations: threePlayers() })}
         currentUserId={ME}
         onPress={jest.fn()}
-        onJoin={jest.fn()}
         now={NOW}
       />,
     );
 
     expect(screen.getByText('Lesson cancelled')).toBeTruthy();
     expect(screen.getByText('This lesson has been cancelled.')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Join lesson' })).toBeNull();
     expect(screen.queryByText('3 / 4')).toBeNull();
   });
 

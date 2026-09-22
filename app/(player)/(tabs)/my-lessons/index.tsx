@@ -3,7 +3,6 @@ import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/Button';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { ScreenHeader } from '@/components/ScreenHeader';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
 import { useCurrentMember } from '@/features/auth/AuthProvider';
@@ -36,11 +35,9 @@ export default function MyLessonsScreen() {
 
   return (
     <ScreenContainer
-      edges={['top']}
       onRefresh={() => void registrations.refetch()}
       refreshing={registrations.isRefetching}
     >
-      <ScreenHeader title={t('tabMyLessons')} />
       <SegmentedControl
         options={[
           { value: 'upcoming', label: t('upcoming') },
@@ -88,7 +85,7 @@ export default function MyLessonsScreen() {
             variant={tab}
             showReason
             onPress={() =>
-              router.push({ pathname: '/lesson/[id]', params: { id: registration.lesson.id } })
+              router.push({ pathname: '/my-lessons/[id]', params: { id: registration.lesson.id } })
             }
           />
         ))

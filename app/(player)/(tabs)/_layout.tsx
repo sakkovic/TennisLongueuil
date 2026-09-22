@@ -9,7 +9,7 @@ export default function PlayerTabsLayout() {
   return (
     <Tabs screenOptions={tabScreenOptions}>
       <Tabs.Screen
-        name="index"
+        name="(home)"
         options={{
           title: t('tabHome'),
           tabBarIcon: ({ color, size, focused }) => (
@@ -33,7 +33,7 @@ export default function PlayerTabsLayout() {
       <Tabs.Screen
         name="my-lessons"
         options={{
-          title: t('tabMyLessons'),
+          title: t('tabBookings'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'calendar' : 'calendar-outline'} color={color} size={24} />
           ),

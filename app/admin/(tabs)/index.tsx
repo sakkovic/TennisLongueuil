@@ -103,7 +103,7 @@ function StatTile({ icon, label, value, onPress }: StatTileProps) {
         {label}
       </AppText>
       <View style={styles.tileValue}>
-        <Ionicons name={icon} size={20} color={colors.primary} />
+        <Ionicons name={icon} size={20} color={colors.navy} />
         <AppText variant="heading">{value}</AppText>
       </View>
     </Pressable>

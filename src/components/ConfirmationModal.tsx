@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: radius.pill,
-    backgroundColor: colors.borderStrong,
+    backgroundColor: colors.textSubtle,
     marginBottom: spacing.sm,
   },
   error: {

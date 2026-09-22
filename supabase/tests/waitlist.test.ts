@@ -93,7 +93,8 @@ describe('joining the waitlist', () => {
   });
 
   it('follows the same rules as joining', async () => {
-    const lesson = await createLesson(db, { courts: 1, startsInHours: 3 });
+    // The coach closed registration an hour ago.
+    const lesson = await createLesson(db, { courts: 1, startsInHours: 30, deadlineInHours: -1 });
     for (const player of await createUsers(db, ['Rule A', 'Rule B', 'Rule C', 'Rule D'])) {
       await registerDirectly(lesson.id, player);
     }
@@ -213,8 +214,8 @@ describe('automatic promotion', () => {
     expect(await lessonCounts(lesson.id)).toEqual({ registered_count: 4, waitlist_count: 0 });
   });
 
-  it('stops moving players in once registration has closed', async () => {
-    // Starts in 3 hours: the 4-hour registration deadline has passed.
+  it('stops moving players in during the last 4 hours', async () => {
+    // Starts in 3 hours: too late to add someone who may not know.
     const lesson = await createLesson(db, { courts: 1, startsInHours: 3 });
     const registered = await createUsers(db, ['Closed A', 'Closed B', 'Closed C', 'Closed D']);
     for (const player of registered) await registerDirectly(lesson.id, player);
@@ -228,6 +229,27 @@ describe('automatic promotion', () => {
 
     expect((await registrationStatuses(db, lesson.id))[waiting.id]).toBe('waitlisted');
     expect(await countJoined(db, lesson.id)).toBe(3);
+
+    // The free spot now goes to whoever joins first, including the waiting player.
+    await expect(joinLesson(db, waiting.id, lesson.id)).resolves.toMatchObject({
+      status: 'joined',
+    });
+  });
+
+  it('stops moving players in once the coach closes registration', async () => {
+    const { lesson, players } = await fullLesson();
+    const waiting = await createUser(db, 'Closed Registration Waiter');
+    await joinWaitlist(db, waiting.id, lesson.id);
+    await db.query(`update public.lessons set registration_open = false where id = $1`, [
+      lesson.id,
+    ]);
+    const coach = await createUser(db, 'Closing Coach', { role: 'admin' });
+
+    await asUser(db, coach.id, (tx) =>
+      tx.query('select public.admin_set_member_active($1, false)', [players[0].id]),
+    );
+
+    expect((await registrationStatuses(db, lesson.id))[waiting.id]).toBe('waitlisted');
   });
 });
 

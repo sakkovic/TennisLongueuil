@@ -5,7 +5,6 @@ import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Banner } from '@/components/Banner';
 import { Button } from '@/components/Button';
-import { CapacityIndicator } from '@/components/CapacityIndicator';
 import { Card } from '@/components/Card';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
@@ -28,9 +27,9 @@ import {
   useSetLessonsStatus,
   useSetLessonStatus,
 } from '@/features/lessons/hooks';
-import { LessonDetailsHeader } from '@/features/lessons/LessonDetailsHeader';
 import { laterInSeries } from '@/features/lessons/lessonSeries';
 import { canTakeAttendance, getLessonAvailability } from '@/features/lessons/lessonState';
+import { LessonSummaryCard } from '@/features/lessons/LessonSummaryCard';
 import { ShareLessonButton } from '@/features/lessons/ShareLessonButton';
 import { useT } from '@/i18n';
 import { formatDateTime } from '@/utils/date';
@@ -133,19 +132,13 @@ export default function AdminLessonScreen() {
       refreshing={lessonQuery.isRefetching}
     >
       <Stack.Screen options={{ headerRight: () => <ShareLessonButton lesson={lesson} /> }} />
-      <LessonDetailsHeader lesson={lesson} availability={availability} />
       {notice ? <Banner tone="success" message={notice} /> : null}
 
-      <Card>
-        <CapacityIndicator
-          registered={lesson.registered_count}
-          capacity={lesson.capacity}
-          size="large"
-        />
+      <LessonSummaryCard lesson={lesson} availability={availability}>
         <AppText variant="caption" tone="muted">
           {lesson.registration_open ? t('registrationOpen') : t('registrationClosed')}
         </AppText>
-      </Card>
+      </LessonSummaryCard>
 
       <Card>
         <SectionHeader

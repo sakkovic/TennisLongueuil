@@ -7,6 +7,7 @@ import { Card } from '@/components/Card';
 import { colors, spacing } from '@/constants/theme';
 import { useT } from '@/i18n';
 import type { TranslationKey } from '@/i18n/strings';
+import { DateBadge } from '@/features/lessons/DateBadge';
 import { formatShortDate, formatTimeRange } from '@/utils/date';
 
 import { getHistoryLabel, type HistoryLabel, type PlayerRegistration } from './api';
@@ -49,9 +50,21 @@ export function RegistrationRow({
       accessibilityLabel={`${lesson.title}, ${formatShortDate(lesson.start_time)}`}
     >
       <View style={styles.row}>
+        <DateBadge date={lesson.start_time} muted={variant === 'history'} />
         <View style={styles.text}>
-          <AppText variant="bodyStrong">{formatShortDate(lesson.start_time)}</AppText>
-          <AppText tone="muted">{formatTimeRange(lesson.start_time, lesson.end_time)}</AppText>
+          <View style={styles.topLine}>
+            <AppText variant="heading" numberOfLines={1} style={styles.time}>
+              {formatTimeRange(lesson.start_time, lesson.end_time)}
+            </AppText>
+            <StatusBadge
+              label={t(badge.key)}
+              tone={badge.tone}
+              icon={badge.tone === 'success' ? 'checkmark' : undefined}
+            />
+          </View>
+          <AppText variant="label" tone="muted" numberOfLines={1}>
+            {lesson.title}
+          </AppText>
           <View style={styles.location}>
             <Ionicons name="location-outline" size={14} color={colors.textMuted} />
             <AppText variant="caption" tone="muted" numberOfLines={1} style={styles.flex}>
@@ -59,11 +72,6 @@ export function RegistrationRow({
             </AppText>
           </View>
         </View>
-        <StatusBadge
-          label={t(badge.key)}
-          tone={badge.tone}
-          icon={badge.tone === 'success' ? 'checkmark' : undefined}
-        />
       </View>
       {variant === 'upcoming' && registration.status === 'joined' && registration.promoted_at ? (
         <AppText variant="caption" tone="muted">
@@ -80,7 +88,16 @@ export function RegistrationRow({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  topLine: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    columnGap: spacing.sm,
+    rowGap: spacing.xs,
+  },
+  time: { flexShrink: 1 },
   text: { flex: 1, gap: spacing.xxs },
   location: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xxs },
   flex: { flex: 1 },

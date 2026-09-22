@@ -8,10 +8,10 @@ export const unstable_settings = { initialRouteName: 'welcome' };
 
 const subScreen = {
   headerShown: true,
-  headerTintColor: colors.primary,
-  headerTitleStyle: { color: colors.text, fontFamily: fonts.displaySemiBold },
+  headerTintColor: colors.onNavy,
+  headerTitleStyle: { color: colors.onNavy, fontFamily: fonts.bold, fontSize: 17 },
   headerShadowVisible: false,
-  headerStyle: { backgroundColor: colors.background },
+  headerStyle: { backgroundColor: colors.header },
   headerBackButtonDisplayMode: 'minimal',
 } as const;
 

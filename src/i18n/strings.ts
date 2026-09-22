@@ -5,7 +5,8 @@ export const strings = {
   en: {
     tabHome: 'Home',
     tabLessons: 'Lessons',
-    tabMyLessons: 'My Lessons',
+    tabMyLessons: 'My Bookings',
+    tabBookings: 'Bookings',
     tabMembers: 'Members',
     tabProfile: 'Profile',
     homeSubtitle: "Here's what's coming up at the club.",
@@ -167,12 +168,12 @@ export const strings = {
     registrationOpen: 'Registration open',
     registrationOpenHint: 'Players can join while registration is open.',
     registrationRuleHint:
-      'Club rule: registration closes at least 4 hours before a lesson. Players can cancel until 24 hours before.',
+      'Players can join until the lesson starts, as long as there is a spot. Choose an earlier time only if you need it. Players can cancel until 24 hours before.',
     registrationClosesAt: 'Registration closes {when}',
     cancelUntil: 'You can cancel until {when}.',
     cancellationClosed:
       "Cancellations close 24 hours before the lesson. Contact your coach if you can't make it.",
-    closesBefore: 'Closes before the lesson',
+    closesBefore: 'Registration closes',
     closesAt: 'Closes {date} at {time}.',
     eachCloses: 'Each lesson closes {lead} before it starts — the first on {date} at {time}.',
     deadlinePassedFirst:
@@ -242,7 +243,7 @@ export const strings = {
     waitlistJoined:
       "You're on the waitlist (#{position}). If a spot opens, you'll be moved in automatically.",
     waitlistHint:
-      'If a spot opens before registration closes, the first player in line is moved in automatically. You can still cancel until 24 hours before the lesson.',
+      'If a spot opens up to 4 hours before the lesson, the first player in line is moved in automatically. After that, a free spot goes to whoever joins first.',
     leaveWaitlist: 'Leave the waitlist',
     leaveWaitlistMessage: "You'll lose your place in line.",
     keepMyPlace: 'Keep my place',
@@ -355,11 +356,17 @@ export const strings = {
     photoOf: 'Photo of {name}',
     emailChangeNote: 'To change your email address, please contact your coach.',
     levelAlsoCoach: ' Your level is also assigned by your coach.',
+    pillSpotsOne: '1 left',
+    pillSpotsOther: '{count} left',
+    pillClosed: 'Closed',
+    untilStart: 'When it starts',
+    openUntilStart: 'Players can join until the lesson starts.',
   },
   fr: {
     tabHome: 'Accueil',
     tabLessons: 'Leçons',
-    tabMyLessons: 'Mes leçons',
+    tabMyLessons: 'Mes réservations',
+    tabBookings: 'Réservations',
     tabMembers: 'Membres',
     tabProfile: 'Profil',
     homeSubtitle: 'Voici ce qui s’en vient au club.',
@@ -379,7 +386,7 @@ export const strings = {
     posterYoureIn: 'Inscrit',
     perHour: 'par heure',
     courtFeesShared: '+ frais de terrain partagés',
-    courtFeeSplit: 'Frais de court partagés {count}',
+    courtFeeSplit: 'Terrain partagé à {count}',
     gotIt: 'D’accord',
     bookYourSpot: 'Réserver ma place',
     viewMyNextLesson: 'Voir ma prochaine leçon',
@@ -521,12 +528,12 @@ export const strings = {
     registrationOpen: 'Inscriptions ouvertes',
     registrationOpenHint: 'Les joueurs peuvent s’inscrire tant que les inscriptions sont ouvertes.',
     registrationRuleHint:
-      'Règle du club : les inscriptions ferment au moins 4 heures avant une leçon. Les joueurs peuvent annuler jusqu’à 24 heures avant.',
+      'Les joueurs peuvent s’inscrire jusqu’au début de la leçon, tant qu’il reste de la place. Choisissez une heure plus tôt seulement si nécessaire. Les joueurs peuvent annuler jusqu’à 24 heures avant.',
     registrationClosesAt: 'Inscriptions jusqu’au {when}',
     cancelUntil: 'Vous pouvez annuler jusqu’au {when}.',
     cancellationClosed:
       'Les annulations ferment 24 heures avant la leçon. Contactez votre coach si vous ne pouvez pas venir.',
-    closesBefore: 'Ferme avant la leçon',
+    closesBefore: 'Fin des inscriptions',
     closesAt: 'Ferme le {date} à {time}.',
     eachCloses: 'Chaque leçon ferme {lead} avant le début — la première le {date} à {time}.',
     deadlinePassedFirst:
@@ -598,7 +605,7 @@ export const strings = {
     waitlistJoined:
       'Vous êtes sur la liste d’attente (n° {position}). Si une place se libère, vous serez inscrit automatiquement.',
     waitlistHint:
-      'Si une place se libère avant la fin des inscriptions, la première personne de la file est inscrite automatiquement. Vous pourrez encore annuler jusqu’à 24 heures avant la leçon.',
+      'Si une place se libère jusqu’à 4 heures avant la leçon, la première personne de la file est inscrite automatiquement. Ensuite, une place libre va au premier qui s’inscrit.',
     leaveWaitlist: 'Quitter la liste d’attente',
     leaveWaitlistMessage: 'Vous perdrez votre place dans la file.',
     keepMyPlace: 'Garder ma place',
@@ -713,6 +720,11 @@ export const strings = {
     photoOf: 'Photo de {name}',
     emailChangeNote: 'Pour changer votre adresse courriel, contactez votre coach.',
     levelAlsoCoach: ' Votre niveau est aussi attribué par votre coach.',
+    pillSpotsOne: '1 place',
+    pillSpotsOther: '{count} places',
+    pillClosed: 'Fermé',
+    untilStart: 'Au début',
+    openUntilStart: 'Les joueurs peuvent s’inscrire jusqu’au début de la leçon.',
   },
 } as const;
 

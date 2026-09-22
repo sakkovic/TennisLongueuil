@@ -33,11 +33,11 @@ describe('lesson form defaults', () => {
     expect(schema.safeParse(values).success).toBe(true);
   });
 
-  it('repeats weekly and closes registration 4 hours ahead by default', () => {
+  it('repeats weekly and keeps registration open until the start by default', () => {
     const values = base();
     expect(values.repeatWeekly).toBe(true);
     expect(values.repeatWeeks).toBe(8);
-    expect(values.deadlineOffsetMinutes).toBe(4 * 60);
+    expect(values.deadlineOffsetMinutes).toBe(0);
   });
 });
 
@@ -62,11 +62,11 @@ describe('lesson form validation', () => {
     expect(errorsFor({ ...base(), date: yesterday })).toHaveProperty('startTime');
   });
 
-  it('never lets registration close later than 4 hours before the lesson', () => {
-    expect(errorsFor({ ...base(), deadlineOffsetMinutes: 2 * 60 })).toHaveProperty(
+  it('never lets registration close after the lesson starts', () => {
+    expect(errorsFor({ ...base(), deadlineOffsetMinutes: -30 })).toHaveProperty(
       'deadlineOffsetMinutes',
     );
-    expect(errorsFor({ ...base(), deadlineOffsetMinutes: 4 * 60 })).not.toHaveProperty(
+    expect(errorsFor({ ...base(), deadlineOffsetMinutes: 0 })).not.toHaveProperty(
       'deadlineOffsetMinutes',
     );
   });
@@ -102,8 +102,8 @@ describe('converting the form to database rows', () => {
       end_time: '2026-09-28T23:30:00.000Z',
       location: 'Complexe Sportif Longueuil',
       court_count: 1,
-      // Default rule: registration closes 4 hours before (2:00 PM).
-      registration_deadline: '2026-09-28T18:00:00.000Z',
+      // Default rule: registration stays open until the start (6:00 PM).
+      registration_deadline: '2026-09-28T22:00:00.000Z',
     });
   });
 

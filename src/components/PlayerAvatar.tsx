@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 
-import { colors } from '@/constants/theme';
+import { colors, fonts } from '@/constants/theme';
 import { useT } from '@/i18n';
 import { getAvatarUrl } from '@/lib/supabase';
 
@@ -15,8 +15,15 @@ interface PlayerAvatarProps {
   size?: number;
 }
 
-// Deep tones that sit well on the dark UI, with light initials.
-const fallbackColors = ['#0F3E40', '#1A3558', '#352A5E', '#4D311C', '#15443A', '#43401A'];
+// Soft tints with matching dark initials, readable on the light UI.
+const fallbackColors = [
+  { background: '#D9F2F1', text: '#0A5856' },
+  { background: '#E3EDFB', text: '#24508F' },
+  { background: '#ECE6FA', text: '#4E3F96' },
+  { background: '#FBEBDD', text: '#8A4B12' },
+  { background: '#DDF3E8', text: '#146B45' },
+  { background: '#F5F0D6', text: '#6B5B12' },
+] as const;
 
 export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -26,7 +33,7 @@ export function getInitials(name: string): string {
   return (first + last).toUpperCase();
 }
 
-function colorFor(name: string): string {
+function colorFor(name: string): (typeof fallbackColors)[number] {
   let hash = 0;
   for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
   return fallbackColors[hash % fallbackColors.length];
@@ -52,11 +59,11 @@ export function PlayerAvatar({ name, avatarPath, version, size = 40 }: PlayerAva
 
   return (
     <View
-      style={[styles.fallback, dimension, { backgroundColor: colorFor(name) }]}
+      style={[styles.fallback, dimension, { backgroundColor: colorFor(name).background }]}
       accessibilityLabel={name}
     >
       <AppText
-        style={[styles.initials, { fontSize: Math.round(size * 0.38) }]}
+        style={[styles.initials, { color: colorFor(name).text, fontSize: Math.round(size * 0.38) }]}
         maxFontSizeMultiplier={1}
       >
         {getInitials(name)}
@@ -68,5 +75,5 @@ export function PlayerAvatar({ name, avatarPath, version, size = 40 }: PlayerAva
 const styles = StyleSheet.create({
   image: { backgroundColor: colors.surfaceMuted },
   fallback: { alignItems: 'center', justifyContent: 'center' },
-  initials: { color: colors.text, fontWeight: '700' },
+  initials: { fontFamily: fonts.bold },
 });

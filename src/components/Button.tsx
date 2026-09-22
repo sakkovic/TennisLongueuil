@@ -44,9 +44,9 @@ const variants: Record<
   },
   secondary: {
     background: 'transparent',
-    pressed: colors.surfacePressed,
-    text: colors.primary,
-    border: colors.borderStrong,
+    pressed: colors.navySoft,
+    text: colors.navy,
+    border: colors.navy,
   },
   danger: {
     background: 'transparent',
@@ -57,14 +57,14 @@ const variants: Record<
   ghost: {
     background: 'transparent',
     pressed: colors.surfacePressed,
-    text: colors.primary,
+    text: colors.navy,
     border: 'transparent',
   },
   accent: {
-    background: colors.accent,
-    pressed: colors.accentPressed,
-    text: colors.onAccent,
-    border: colors.accent,
+    background: colors.navy,
+    pressed: colors.header,
+    text: colors.onNavy,
+    border: colors.navy,
   },
 };
 
@@ -87,6 +87,8 @@ export function Button({
 }: ButtonProps) {
   const palette = variants[variant];
   const inactive = disabled || loading;
+  const idleDisabled = disabled && !loading;
+  const textColor = idleDisabled ? colors.disabledText : palette.text;
 
   return (
     <Pressable
@@ -106,18 +108,18 @@ export function Button({
           borderColor: palette.border,
         },
         variant === 'primary' && !inactive && shadow.glow,
-        disabled && !loading && styles.disabled,
+        idleDisabled && styles.disabled,
         style,
       ]}
     >
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator color={palette.text} size="small" />
+          <ActivityIndicator color={textColor} size="small" />
         ) : icon ? (
-          <Ionicons name={icon} size={20} color={palette.text} />
+          <Ionicons name={icon} size={20} color={textColor} />
         ) : null}
         <AppText
-          style={[typography.bodyStrong, styles.label, { color: palette.text }]}
+          style={[typography.bodyStrong, styles.label, { color: textColor }]}
           numberOfLines={1}
         >
           {label}
@@ -129,7 +131,7 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radius.md,
+    borderRadius: radius.xl,
     borderWidth: stroke,
     alignItems: 'center',
     justifyContent: 'center',
@@ -138,7 +140,7 @@ const styles = StyleSheet.create({
   lg: { minHeight: 52 },
   md: { minHeight: touchTarget - 4 },
   fullWidth: { alignSelf: 'stretch' },
-  disabled: { opacity: 0.45 },
+  disabled: { backgroundColor: colors.disabled, borderColor: colors.disabled },
   content: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   label: { letterSpacing: 0.2 },
 });

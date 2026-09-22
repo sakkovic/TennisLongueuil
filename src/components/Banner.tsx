@@ -20,7 +20,7 @@ const tones: Record<
   success: {
     background: colors.successSoft,
     text: colors.success,
-    border: '#8FCBAA',
+    border: colors.primarySoft,
     icon: 'checkmark-circle',
   },
   danger: {
@@ -32,13 +32,13 @@ const tones: Record<
   info: {
     background: colors.infoSoft,
     text: colors.info,
-    border: '#A8C4E8',
+    border: colors.border,
     icon: 'information-circle',
   },
   warning: {
     background: colors.warningSoft,
     text: colors.warning,
-    border: '#E2C07A',
+    border: colors.lime,
     icon: 'warning',
   },
 };

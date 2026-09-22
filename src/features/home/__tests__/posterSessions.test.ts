@@ -78,12 +78,12 @@ describe('slotLabel', () => {
   it('uses the right wording for each state', () => {
     const base = { id: 'x', startTime: '2026-09-28T22:00:00.000Z' };
     expect(slotLabel({ ...base, tone: 'open', spotsLeft: 3 })).toEqual({
-      key: 'spotsLeftOther',
+      key: 'pillSpotsOther',
       vars: { count: 3 },
     });
-    expect(slotLabel({ ...base, tone: 'open', spotsLeft: 1 })).toEqual({ key: 'spotsLeftOne' });
+    expect(slotLabel({ ...base, tone: 'open', spotsLeft: 1 })).toEqual({ key: 'pillSpotsOne' });
     expect(slotLabel({ ...base, tone: 'full', spotsLeft: 0 }).key).toBe('full');
     expect(slotLabel({ ...base, tone: 'registered', spotsLeft: 2 }).key).toBe('posterYoureIn');
-    expect(slotLabel({ ...base, tone: 'closed', spotsLeft: 2 }).key).toBe('registrationClosed');
+    expect(slotLabel({ ...base, tone: 'closed', spotsLeft: 2 }).key).toBe('pillClosed');
   });
 });

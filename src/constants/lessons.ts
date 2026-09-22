@@ -23,18 +23,21 @@ export const DEFAULT_LESSON_DURATION_MINUTES = SESSION_MINUTES;
 export const LESSON_DURATION_CHOICES = [45, 60, 90, 120, 180];
 
 /**
- * Club rules, enforced by the database (migration 20260921000600_lesson_rules):
- * registration closes at least 4 hours before a lesson, and players can cancel
- * their registration until 24 hours before it.
+ * Club rules, enforced by the database (migrations 20260921000600_lesson_rules
+ * and 20260922000500_open_until_start): players can join until the lesson
+ * starts unless the coach closes registration earlier, and can cancel until
+ * 24 hours before. The waitlist moves players in automatically only until
+ * 4 hours before the start.
  */
-export const REGISTRATION_LEAD_MINUTES = 4 * 60;
+export const REGISTRATION_LEAD_MINUTES = 0;
 export const CANCELLATION_LEAD_MINUTES = 24 * 60;
+export const PROMOTION_LEAD_MINUTES = 4 * 60;
 /** The coach can take attendance from this long before the start. */
 export const ATTENDANCE_LEAD_MINUTES = 30;
 
-/** How long before the start registration closes (never later than the 4-hour rule). */
+/** How long before the start registration closes. 0 = open until the lesson starts. */
 export const DEFAULT_DEADLINE_OFFSET_MINUTES = REGISTRATION_LEAD_MINUTES;
-export const DEADLINE_OFFSET_CHOICES = [4 * 60, 6 * 60, 12 * 60, 24 * 60, 48 * 60, 72 * 60];
+export const DEADLINE_OFFSET_CHOICES = [0, 60, 2 * 60, 4 * 60, 12 * 60, 24 * 60];
 
 /**
  * Weekly repeat. Lessons normally run every week, so the form defaults to a

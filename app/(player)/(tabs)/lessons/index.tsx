@@ -1,12 +1,9 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
 
-import { Button } from '@/components/Button';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { ScreenHeader } from '@/components/ScreenHeader';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
-import { spacing } from '@/constants/theme';
+import { useCurrentMember } from '@/features/auth/AuthProvider';
 import { useLessonsRealtime, useUpcomingLessons } from '@/features/lessons/hooks';
 import { LessonCard } from '@/features/lessons/LessonCard';
 import {
@@ -15,10 +12,14 @@ import {
   weeksFromItems,
 } from '@/features/lessons/lessonWeeks';
 import { WeekSelector } from '@/features/lessons/WeekSelector';
+import { getLessonAvailability } from '@/features/lessons/lessonState';
+import { findMyRegistration } from '@/features/lessons/api';
+import { hasLessonActions, LessonActions } from '@/features/registrations/LessonActions';
 import { useT } from '@/i18n';
 
-export default function AdminLessonsScreen() {
+export default function PlayerLessonsScreen() {
   const t = useT();
+  const member = useCurrentMember();
   const [weekKey, setWeekKey] = useState<string | null>(null);
   const upcoming = useUpcomingLessons();
   useLessonsRealtime();
@@ -29,32 +30,7 @@ export default function AdminLessonsScreen() {
   const visible = weeks.find((week) => week.key === selectedWeek)?.items ?? [];
 
   return (
-    <ScreenContainer
-      edges={['top']}
-      onRefresh={() => void upcoming.refetch()}
-      refreshing={upcoming.isRefetching}
-    >
-      <ScreenHeader
-        title={t('tabLessons')}
-        action={
-          <View style={styles.actions}>
-            <Button
-              label={t('history')}
-              variant="secondary"
-              size="md"
-              fullWidth={false}
-              onPress={() => router.push('/admin/history')}
-            />
-            <Button
-              label={t('newLabel')}
-              icon="add"
-              size="md"
-              fullWidth={false}
-              onPress={() => router.push('/admin/lesson/new')}
-            />
-          </View>
-        }
-      />
+    <ScreenContainer onRefresh={() => void upcoming.refetch()} refreshing={upcoming.isRefetching}>
       {weeks.length > 1 && selectedWeek ? (
         <WeekSelector weeks={weeks} value={selectedWeek} onChange={setWeekKey} />
       ) : null}
@@ -71,14 +47,7 @@ export default function AdminLessonsScreen() {
         <EmptyState
           icon="calendar-outline"
           title={t('noUpcomingTitleShort')}
-          message={t('noUpcomingCoachCreate')}
-          action={
-            <Button
-              label={t('createLesson')}
-              onPress={() => router.push('/admin/lesson/new')}
-              fullWidth={false}
-            />
-          }
+          message={t('noUpcomingPlayer')}
         />
       ) : visible.length === 0 ? (
         <EmptyState icon="calendar-outline" title={t('noLessonsThisWeek')} />
@@ -87,8 +56,14 @@ export default function AdminLessonsScreen() {
           <LessonCard
             key={lesson.id}
             lesson={lesson}
-            onPress={() =>
-              router.push({ pathname: '/admin/lesson/[id]', params: { id: lesson.id } })
+            currentUserId={member.id}
+            onPress={() => router.push({ pathname: '/lessons/[id]', params: { id: lesson.id } })}
+            actions={
+              hasLessonActions(
+                getLessonAvailability(lesson, findMyRegistration(lesson, member.id)?.status),
+              ) ? (
+                <LessonActions lesson={lesson} userId={member.id} />
+              ) : undefined
             }
           />
         ))
@@ -96,7 +71,3 @@ export default function AdminLessonsScreen() {
     </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-});

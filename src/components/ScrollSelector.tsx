@@ -30,6 +30,8 @@ interface ScrollSelectorProps<T> {
   value: T;
   onChange: (value: T) => void;
   itemWidth?: number;
+  /** Hide the field label when the page title already names the control. */
+  hideLabel?: boolean;
   error?: string;
 }
 
@@ -46,6 +48,7 @@ export function ScrollSelector<T extends string | number>({
   value,
   onChange,
   itemWidth = 72,
+  hideLabel = false,
   error,
 }: ScrollSelectorProps<T>) {
   const scrollRef = useRef<ScrollView>(null);
@@ -87,9 +90,11 @@ export function ScrollSelector<T extends string | number>({
           }
         : null)}
     >
-      <AppText variant="label" tone="muted">
-        {label}
-      </AppText>
+      {hideLabel ? null : (
+        <AppText variant="label" tone="muted">
+          {label}
+        </AppText>
+      )}
       <View style={styles.row}>
         <StepArrow
           direction="back"
@@ -131,11 +136,11 @@ export function ScrollSelector<T extends string | number>({
                 }
                 style={[styles.item, { width: itemWidth }, selected && styles.itemSelected]}
               >
-                <AppText variant="bodyStrong" tone={selected ? 'inverse' : 'default'}>
+                <AppText variant="bodyStrong" tone={selected ? 'default' : 'muted'}>
                   {option.label}
                 </AppText>
                 {option.sublabel ? (
-                  <AppText variant="caption" tone={selected ? 'inverse' : 'muted'}>
+                  <AppText variant="caption" tone={selected ? 'default' : 'muted'}>
                     {option.sublabel}
                   </AppText>
                 ) : null}
@@ -212,9 +217,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: stroke,
     borderColor: colors.borderStrong,
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.surface,
   },
-  itemSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
+  itemSelected: { backgroundColor: colors.lime, borderColor: colors.lime },
   arrow: {
     width: 40,
     height: 56,

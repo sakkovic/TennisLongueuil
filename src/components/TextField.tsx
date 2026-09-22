@@ -33,7 +33,7 @@ export function TextField({
       <TextInput
         ref={ref}
         accessibilityLabel={label}
-        placeholderTextColor={colors.textSubtle}
+        placeholderTextColor={colors.textMuted}
         selectionColor={colors.primary}
         cursorColor={colors.primary}
         keyboardAppearance="light"

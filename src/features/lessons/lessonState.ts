@@ -40,7 +40,7 @@ export interface LessonAvailability {
   canJoinWaitlist: boolean;
   /** Release a spot (until 24 hours before) or leave the waitlist (until the start). */
   canCancel: boolean;
-  /** When registration closes: the lesson's own deadline, or 4 hours before. */
+  /** When registration closes: the lesson's own deadline, or its start. */
   registrationClosesAt: Date;
   /** When players can no longer cancel: 24 hours before the lesson. */
   cancellationClosesAt: Date;
@@ -120,10 +120,15 @@ export function getLessonAvailability(
   if (isRegistered) {
     return result('registered', 'success', { canCancel: now < cancellationDeadline });
   }
-  if (isWaitlisted) return result('waitlisted', 'info', { canCancel: true });
   const registrationOpen = lesson.registration_open && now <= registrationDeadline;
+  if (isWaitlisted) {
+    // In the last hours the waitlist no longer moves on its own: a free spot
+    // goes to whoever joins first, waiting players included.
+    const spotFree = lesson.registered_count < lesson.capacity;
+    return result('waitlisted', 'info', { canCancel: true, canJoin: spotFree && registrationOpen });
+  }
   if (lesson.registered_count >= lesson.capacity) {
-    return result('full', 'warning', { canJoinWaitlist: registrationOpen });
+    return result('full', 'neutral', { canJoinWaitlist: registrationOpen });
   }
   if (!lesson.registration_open) return result('closed', 'neutral');
   if (now > registrationDeadline) return result('deadline_passed', 'neutral');

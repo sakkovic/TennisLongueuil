@@ -28,8 +28,8 @@ const FRENCH: Record<string, string> = {
   'Please enter a location.': 'Veuillez saisir un lieu.',
   'A lesson lasts at least 15 minutes.': 'Une leçon dure au moins 15 minutes.',
   'A lesson needs at least 1 court.': 'Une leçon a besoin d’au moins 1 terrain.',
-  'Registration must close at least 4 hours before the lesson.':
-    'Les inscriptions doivent fermer au moins 4 heures avant la leçon.',
+  'Registration must close before the lesson starts.':
+    'Les inscriptions doivent fermer avant le début de la leçon.',
   'The lesson must start in the future.': 'La leçon doit commencer dans le futur.',
   'This reset link is invalid or has expired. Please request a new one.':
     'Ce lien de réinitialisation est invalide ou a expiré. Demandez-en un nouveau.',
