@@ -24,6 +24,7 @@ import { colors, spacing } from '@/constants/theme';
 import { signIn } from '@/features/auth/api';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useT } from '@/i18n';
+import { useValidationMessage } from '@/i18n/validation';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 const loginSchema = z.object({
@@ -35,6 +36,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const t = useT();
+  const v = useValidationMessage();
   const { recoveryError, clearRecoveryError } = useAuth();
   const passwordRef = useRef<TextInput>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -71,15 +73,15 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.form}>
-            <AppText variant="title">Welcome back</AppText>
-            <AppText tone="muted">Sign in to see your upcoming lessons.</AppText>
+            <AppText variant="title">{t('welcomeBack')}</AppText>
+            <AppText tone="muted">{t('signInSubtitle')}</AppText>
 
             <Controller
               control={control}
               name="email"
               render={({ field }) => (
                 <TextField
-                  label="Email"
+                  label={t('email')}
                   value={field.value}
                   onChangeText={field.onChange}
                   onBlur={field.onBlur}
@@ -90,7 +92,7 @@ export default function LoginScreen() {
                   textContentType="emailAddress"
                   returnKeyType="next"
                   onSubmitEditing={() => passwordRef.current?.focus()}
-                  error={formState.errors.email?.message}
+                  error={v(formState.errors.email?.message)}
                   testID="login-email"
                 />
               )}
@@ -103,7 +105,7 @@ export default function LoginScreen() {
                 <View>
                   <TextField
                     ref={passwordRef}
-                    label="Password"
+                    label={t('password')}
                     value={field.value}
                     onChangeText={field.onChange}
                     onBlur={field.onBlur}
@@ -112,14 +114,14 @@ export default function LoginScreen() {
                     textContentType="password"
                     returnKeyType="go"
                     onSubmitEditing={onSubmit}
-                    error={formState.errors.password?.message}
+                    error={v(formState.errors.password?.message)}
                     style={styles.passwordInput}
                     testID="login-password"
                   />
                   <Pressable
                     onPress={() => setShowPassword((value) => !value)}
                     accessibilityRole="button"
-                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                    accessibilityLabel={showPassword ? t('hidePassword') : t('showPassword')}
                     style={styles.eye}
                     hitSlop={8}
                   >
@@ -133,11 +135,11 @@ export default function LoginScreen() {
               )}
             />
 
-            {recoveryError ? <Banner tone="warning" message={recoveryError} /> : null}
+            {recoveryError ? <Banner tone="warning" message={v(recoveryError)} /> : null}
             {submitError ? <Banner tone="danger" message={submitError} /> : null}
 
             <Button
-              label="Sign in"
+              label={t('signIn')}
               onPress={onSubmit}
               loading={formState.isSubmitting}
               testID="login-submit"
@@ -146,20 +148,19 @@ export default function LoginScreen() {
             <Link href="/forgot-password" asChild>
               <Pressable accessibilityRole="link" style={styles.link} hitSlop={8}>
                 <AppText variant="label" tone="primary">
-                  Forgot your password?
+                  {t('forgotPassword')}
                 </AppText>
               </Pressable>
             </Link>
 
             <Button
-              label="Create an account"
+              label={t('createAnAccount')}
               variant="secondary"
               onPress={() => router.push('/sign-up')}
             />
 
             <AppText variant="caption" tone="subtle" style={styles.footnote}>
-              This is a private club app. Your coach approves every new account before you can see
-              lessons.
+              {t('privateClubNote')}
             </AppText>
           </View>
         </ScrollView>

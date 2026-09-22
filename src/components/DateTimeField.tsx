@@ -4,7 +4,7 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { createElement, useRef } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, radius, spacing } from '@/constants/theme';
+import { colors, radius, spacing, stroke } from '@/constants/theme';
 import { formatLongDate, formatTime } from '@/utils/date';
 
 import { AppText } from './AppText';
@@ -217,8 +217,8 @@ const styles = StyleSheet.create({
     minHeight: 56,
     paddingHorizontal: spacing.md + 2,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surfaceMuted,
-    borderWidth: 1,
+    backgroundColor: colors.surface,
+    borderWidth: stroke,
     borderColor: colors.border,
     borderRadius: radius.md,
   },

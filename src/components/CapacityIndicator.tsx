@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, View } from 'react-native';
 
 import { colors, radius, spacing } from '@/constants/theme';
+import { useT } from '@/i18n';
 import {
   formatCapacity,
   formatSpotsRemaining,
@@ -27,6 +28,7 @@ export function CapacityIndicator({
   size = 'compact',
   hideAvailability = false,
 }: CapacityIndicatorProps) {
+  const t = useT();
   const full = isLessonFull(registered, capacity);
   const remaining = spotsRemaining(registered, capacity);
   const large = size === 'large';
@@ -38,9 +40,11 @@ export function CapacityIndicator({
     <View
       style={styles.container}
       accessible
-      accessibilityLabel={`${registered} of ${capacity} players registered. ${
-        full ? 'Lesson full' : formatSpotsRemaining(registered, capacity)
-      }.`}
+      accessibilityLabel={t('capacityA11y', {
+        registered,
+        capacity,
+        availability: full ? t('lessonFull') : formatSpotsRemaining(registered, capacity),
+      })}
     >
       <View style={styles.headerRow}>
         <View style={styles.countRow}>
@@ -50,14 +54,14 @@ export function CapacityIndicator({
           </AppText>
           {large ? (
             <AppText tone="muted" variant="label">
-              players
+              {t('playersWord')}
             </AppText>
           ) : null}
         </View>
         {hideAvailability ? null : full ? (
           <View style={styles.fullBadge}>
             <AppText variant="overline" style={styles.fullText}>
-              Full
+              {t('full')}
             </AppText>
           </View>
         ) : (

@@ -7,10 +7,12 @@ import { signOut } from '@/features/auth/api';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { NewPasswordForm } from '@/features/auth/NewPasswordForm';
 import { useUpdatePassword } from '@/features/profile/hooks';
+import { useT } from '@/i18n';
 import { logError } from '@/utils/errors';
 
 /** Reached from a password-reset email (link or code). */
 export default function ResetPasswordScreen() {
+  const t = useT();
   const { finishPasswordRecovery } = useAuth();
   const updatePassword = useUpdatePassword();
   const [cancelling, setCancelling] = useState(false);
@@ -28,12 +30,12 @@ export default function ResetPasswordScreen() {
   return (
     <ScreenContainer edges={['top', 'bottom']} keyboard>
       <ScreenHeader
-        overline="Password reset"
-        title="Choose a new password"
-        subtitle="Your reset was verified. Pick a new password to finish."
+        overline={t('passwordReset')}
+        title={t('chooseNewPassword')}
+        subtitle={t('resetVerified')}
       />
       <NewPasswordForm
-        submitLabel="Save new password"
+        submitLabel={t('saveNewPassword')}
         submitting={updatePassword.isPending}
         error={updatePassword.error}
         onSubmit={({ newPassword }) =>
@@ -43,7 +45,7 @@ export default function ResetPasswordScreen() {
           })
         }
       />
-      <Button label="Cancel" variant="ghost" onPress={cancel} loading={cancelling} />
+      <Button label={t('cancel')} variant="ghost" onPress={cancel} loading={cancelling} />
     </ScreenContainer>
   );
 }

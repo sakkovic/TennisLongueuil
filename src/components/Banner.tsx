@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { colors, radius, spacing } from '@/constants/theme';
+import { colors, radius, spacing, stroke } from '@/constants/theme';
 
 import { AppText } from './AppText';
 
@@ -10,12 +10,37 @@ type BannerTone = 'success' | 'danger' | 'info' | 'warning';
 
 const tones: Record<
   BannerTone,
-  { background: string; text: string; icon: ComponentProps<typeof Ionicons>['name'] }
+  {
+    background: string;
+    text: string;
+    border: string;
+    icon: ComponentProps<typeof Ionicons>['name'];
+  }
 > = {
-  success: { background: colors.successSoft, text: colors.success, icon: 'checkmark-circle' },
-  danger: { background: colors.dangerSoft, text: colors.danger, icon: 'alert-circle' },
-  info: { background: colors.infoSoft, text: colors.info, icon: 'information-circle' },
-  warning: { background: colors.warningSoft, text: colors.warning, icon: 'warning' },
+  success: {
+    background: colors.successSoft,
+    text: colors.success,
+    border: '#8FCBAA',
+    icon: 'checkmark-circle',
+  },
+  danger: {
+    background: colors.dangerSoft,
+    text: colors.danger,
+    border: colors.dangerBorder,
+    icon: 'alert-circle',
+  },
+  info: {
+    background: colors.infoSoft,
+    text: colors.info,
+    border: '#A8C4E8',
+    icon: 'information-circle',
+  },
+  warning: {
+    background: colors.warningSoft,
+    text: colors.warning,
+    border: '#E2C07A',
+    icon: 'warning',
+  },
 };
 
 /** Inline feedback message (form errors, confirmations). */
@@ -23,7 +48,7 @@ export function Banner({ tone, message }: { tone: BannerTone; message: string })
   const palette = tones[tone];
   return (
     <View
-      style={[styles.banner, { backgroundColor: palette.background }]}
+      style={[styles.banner, { backgroundColor: palette.background, borderColor: palette.border }]}
       accessibilityRole={tone === 'danger' ? 'alert' : 'text'}
       accessibilityLiveRegion="polite"
     >
@@ -42,6 +67,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     padding: spacing.md,
     borderRadius: radius.md,
+    borderWidth: stroke,
   },
   text: { flex: 1 },
 });

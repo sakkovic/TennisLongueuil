@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, Switch, View } from 'react-native';
 
-import { colors, radius, spacing, touchTarget } from '@/constants/theme';
+import { colors, radius, spacing, stroke, touchTarget } from '@/constants/theme';
 
 import { AppText } from './AppText';
 
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: stroke,
     borderColor: colors.border,
   },
   stepButton: {
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
     paddingHorizontal: spacing.md + 2,
     borderRadius: radius.pill,
-    borderWidth: 1,
+    borderWidth: stroke,
     borderColor: colors.borderStrong,
     backgroundColor: colors.surface,
   },

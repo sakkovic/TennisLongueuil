@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
@@ -16,24 +16,45 @@ import { spacing } from '@/constants/theme';
 import {
   getActiveRegistrations,
   getCancelledRegistrations,
+  getWaitlist,
   type LessonRegistration,
 } from '@/features/lessons/api';
-import { useLesson, useLessonsRealtime, useSetLessonStatus } from '@/features/lessons/hooks';
+import { AttendanceToggle } from '@/features/lessons/AttendanceToggle';
+import {
+  useFollowingInSeries,
+  useLesson,
+  useLessonsRealtime,
+  useSetAttendance,
+  useSetLessonsStatus,
+  useSetLessonStatus,
+} from '@/features/lessons/hooks';
 import { LessonDetailsHeader } from '@/features/lessons/LessonDetailsHeader';
-import { getLessonAvailability } from '@/features/lessons/lessonState';
+import { laterInSeries } from '@/features/lessons/lessonSeries';
+import { canTakeAttendance, getLessonAvailability } from '@/features/lessons/lessonState';
+import { ShareLessonButton } from '@/features/lessons/ShareLessonButton';
+import { useT } from '@/i18n';
 import { formatDateTime } from '@/utils/date';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 type StatusAction = 'cancel' | 'reinstate';
 
 export default function AdminLessonScreen() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const lessonQuery = useLesson(id);
+  const lesson = lessonQuery.data;
+  const now = new Date();
+  const cancellable =
+    lesson && lesson.status === 'scheduled' && new Date(lesson.start_time) > now ? lesson : null;
+  const following = useFollowingInSeries(cancellable);
   const setStatus = useSetLessonStatus();
+  const setSeriesStatus = useSetLessonsStatus();
+  const attendance = useSetAttendance();
   // The action is kept while the sheet animates closed, so its text never flips.
   const [action, setAction] = useState<StatusAction>('cancel');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [attendanceError, setAttendanceError] = useState<string | null>(null);
   useLessonsRealtime(id);
 
   if (lessonQuery.isPending) return <LoadingState />;
@@ -46,18 +67,23 @@ export default function AdminLessonScreen() {
       />
     );
   }
-  const lesson = lessonQuery.data;
-  if (!lesson) return <EmptyState icon="search-outline" title="Lesson not found" />;
+  if (!lesson) return <EmptyState icon="search-outline" title={t('lessonNotFound')} />;
 
   const registered = getActiveRegistrations(lesson);
+  const waitlist = getWaitlist(lesson);
   const cancelled = getCancelledRegistrations(lesson);
   const availability = getLessonAvailability(lesson, false);
-  const now = new Date();
   const canCancel = lesson.status === 'scheduled' && new Date(lesson.end_time) > now;
   const canReinstate = lesson.status === 'cancelled' && new Date(lesson.start_time) > now;
+  const takingAttendance = canTakeAttendance(lesson, now);
+  const present = registered.filter((r) => r.attendance?.status === 'present').length;
+  const followingIds = (following.data ?? []).map((l) => l.id);
+  const later = cancellable ? laterInSeries(lesson.id, following.data ?? []) : 0;
+  const statusError = setStatus.error ?? setSeriesStatus.error;
 
   const openConfirm = (next: StatusAction) => {
     setStatus.reset();
+    setSeriesStatus.reset();
     setAction(next);
     setConfirmOpen(true);
   };
@@ -68,14 +94,35 @@ export default function AdminLessonScreen() {
       { lessonId: lesson.id, status },
       {
         onSuccess: () => {
-          setNotice(
-            action === 'cancel'
-              ? 'The lesson has been cancelled.'
-              : 'The lesson is scheduled again.',
-          );
+          setNotice(action === 'cancel' ? t('lessonCancelledNotice') : t('lessonReinstatedNotice'));
           setConfirmOpen(false);
         },
         onError: (error) => logError('setLessonStatus', error),
+      },
+    );
+  };
+
+  const cancelFollowing = () =>
+    setSeriesStatus.mutate(
+      { lessonIds: followingIds, status: 'cancelled' },
+      {
+        onSuccess: () => {
+          setNotice(t('lessonsCancelled', { count: followingIds.length }));
+          setConfirmOpen(false);
+        },
+        onError: (error) => logError('setLessonsStatus', error),
+      },
+    );
+
+  const markAttendance = (registration: LessonRegistration, value: 'present' | 'absent' | null) => {
+    setAttendanceError(null);
+    attendance.mutate(
+      { registrationId: registration.id, status: value },
+      {
+        onError: (error) => {
+          logError('setAttendance', error);
+          setAttendanceError(getErrorMessage(error));
+        },
       },
     );
   };
@@ -85,6 +132,7 @@ export default function AdminLessonScreen() {
       onRefresh={() => void lessonQuery.refetch()}
       refreshing={lessonQuery.isRefetching}
     >
+      <Stack.Screen options={{ headerRight: () => <ShareLessonButton lesson={lesson} /> }} />
       <LessonDetailsHeader lesson={lesson} availability={availability} />
       {notice ? <Banner tone="success" message={notice} /> : null}
 
@@ -95,29 +143,73 @@ export default function AdminLessonScreen() {
           size="large"
         />
         <AppText variant="caption" tone="muted">
-          Registration {lesson.registration_open ? 'open' : 'closed'}
+          {lesson.registration_open ? t('registrationOpen') : t('registrationClosed')}
         </AppText>
       </Card>
 
       <Card>
-        <SectionHeader title="Registered" count={registered.length} />
+        <SectionHeader
+          title={takingAttendance ? t('attendance') : t('registered')}
+          count={registered.length}
+        />
+        {takingAttendance && registered.length > 0 ? (
+          <AppText variant="caption" tone="muted">
+            {`${t('attendanceCount', { present, total: registered.length })} · ${t('attendanceHint')}`}
+          </AppText>
+        ) : null}
+        {attendanceError ? <Banner tone="danger" message={attendanceError} /> : null}
         {registered.length === 0 ? (
-          <AppText tone="muted">No players registered yet.</AppText>
+          <AppText tone="muted">{t('noPlayersRegistered')}</AppText>
         ) : (
           registered.map((registration) => (
             <RegistrationLine
               key={registration.id}
               registration={registration}
-              detail={`Joined ${formatDateTime(registration.joined_at)}`}
+              detail={
+                registration.promoted_at
+                  ? t('movedUp')
+                  : t('joinedOn', { when: formatDateTime(registration.joined_at) })
+              }
+              trailing={
+                takingAttendance ? (
+                  <AttendanceToggle
+                    playerName={registration.player.full_name}
+                    value={registration.attendance?.status ?? null}
+                    saving={
+                      attendance.isPending &&
+                      attendance.variables?.registrationId === registration.id
+                    }
+                    onChange={(value) => markAttendance(registration, value)}
+                  />
+                ) : null
+              }
             />
           ))
         )}
+        {!takingAttendance && registered.length > 0 && lesson.status === 'scheduled' ? (
+          <AppText variant="caption" tone="subtle">
+            {t('attendanceOpens')}
+          </AppText>
+        ) : null}
       </Card>
 
+      {waitlist.length > 0 ? (
+        <Card>
+          <SectionHeader title={t('waitlist')} count={waitlist.length} />
+          {waitlist.map((registration, index) => (
+            <RegistrationLine
+              key={registration.id}
+              registration={registration}
+              detail={`#${index + 1} · ${t('queuedOn', { when: formatDateTime(registration.joined_at) })}`}
+            />
+          ))}
+        </Card>
+      ) : null}
+
       <Card>
-        <SectionHeader title="Cancelled" count={cancelled.length} />
+        <SectionHeader title={t('cancelled')} count={cancelled.length} />
         {cancelled.length === 0 ? (
-          <AppText tone="muted">No cancellations.</AppText>
+          <AppText tone="muted">{t('noCancellations')}</AppText>
         ) : (
           cancelled.map((registration) => (
             <View key={registration.id} style={styles.cancelled}>
@@ -125,8 +217,8 @@ export default function AdminLessonScreen() {
                 registration={registration}
                 detail={
                   registration.cancelled_at
-                    ? `Cancelled ${formatDateTime(registration.cancelled_at)}`
-                    : 'Cancelled'
+                    ? t('cancelledOn', { when: formatDateTime(registration.cancelled_at) })
+                    : t('cancelled')
                 }
               />
               <AppText
@@ -134,8 +226,8 @@ export default function AdminLessonScreen() {
                 style={styles.reason}
               >
                 {registration.cancellation_reason
-                  ? `Reason: ${registration.cancellation_reason}`
-                  : 'No reason given'}
+                  ? t('reasonLabel', { reason: registration.cancellation_reason })
+                  : t('noReasonGiven')}
               </AppText>
             </View>
           ))
@@ -144,7 +236,7 @@ export default function AdminLessonScreen() {
 
       <View style={styles.actions}>
         <Button
-          label="Edit lesson"
+          label={t('editLesson')}
           icon="create-outline"
           variant="secondary"
           onPress={() =>
@@ -153,7 +245,7 @@ export default function AdminLessonScreen() {
         />
         {canCancel ? (
           <Button
-            label="Cancel lesson"
+            label={t('cancelLesson')}
             icon="close-circle-outline"
             variant="danger"
             onPress={() => openConfirm('cancel')}
@@ -161,7 +253,7 @@ export default function AdminLessonScreen() {
         ) : null}
         {canReinstate ? (
           <Button
-            label="Reinstate lesson"
+            label={t('reinstateLesson')}
             icon="refresh"
             variant="secondary"
             onPress={() => openConfirm('reinstate')}
@@ -171,17 +263,33 @@ export default function AdminLessonScreen() {
 
       <ConfirmationModal
         visible={confirmOpen}
-        title={action === 'cancel' ? 'Cancel this lesson?' : 'Reinstate this lesson?'}
+        title={action === 'cancel' ? t('cancelLessonTitle') : t('reinstateLessonTitle')}
         message={
           action === 'cancel'
-            ? "Players will see the lesson as cancelled and won't be able to join. Registrations are kept for your records."
-            : 'The lesson will be scheduled again. Players who were registered stay registered.'
+            ? later > 0
+              ? t('seriesCancelMessage')
+              : t('cancelLessonMessage')
+            : t('reinstateLessonMessage')
         }
-        confirmLabel={action === 'cancel' ? 'Cancel lesson' : 'Reinstate lesson'}
-        cancelLabel={action === 'cancel' ? 'Keep lesson' : 'Go back'}
+        confirmLabel={
+          action === 'cancel'
+            ? later > 0
+              ? t('thisLessonOnly')
+              : t('cancelLesson')
+            : t('reinstateLesson')
+        }
+        secondaryLabel={
+          action === 'cancel' && later > 0
+            ? later === 1
+              ? t('thisAndFollowingOne')
+              : t('thisAndFollowingOther', { count: later })
+            : undefined
+        }
+        onSecondary={action === 'cancel' && later > 0 ? cancelFollowing : undefined}
+        cancelLabel={action === 'cancel' ? t('keepLesson') : t('goBack')}
         destructive={action === 'cancel'}
-        loading={setStatus.isPending}
-        error={setStatus.isError ? getErrorMessage(setStatus.error) : null}
+        loading={setStatus.isPending || setSeriesStatus.isPending}
+        error={statusError ? getErrorMessage(statusError) : null}
         onConfirm={confirm}
         onCancel={() => setConfirmOpen(false)}
       />
@@ -192,9 +300,11 @@ export default function AdminLessonScreen() {
 function RegistrationLine({
   registration,
   detail,
+  trailing,
 }: {
   registration: LessonRegistration;
   detail: string;
+  trailing?: ReactNode;
 }) {
   return (
     <View style={styles.line}>
@@ -208,10 +318,11 @@ function RegistrationLine({
         <AppText variant="bodyStrong" numberOfLines={1}>
           {registration.player.full_name}
         </AppText>
-        <AppText variant="caption" tone="muted">
+        <AppText variant="caption" tone="muted" numberOfLines={1}>
           {detail}
         </AppText>
       </View>
+      {trailing}
     </View>
   );
 }

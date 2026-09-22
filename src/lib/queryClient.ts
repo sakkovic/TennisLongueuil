@@ -32,6 +32,8 @@ export const queryKeys = {
   upcomingLessons: ['lessons', 'upcoming'] as const,
   pastLessons: ['lessons', 'past'] as const,
   lesson: (lessonId: string) => ['lessons', 'detail', lessonId] as const,
+  seriesFrom: (seriesId: string | null, startTime: string) =>
+    ['lessons', 'series', seriesId, startTime] as const,
   myRegistrations: (userId: string | undefined) => ['registrations', 'mine', userId] as const,
   members: ['members'] as const,
   member: (memberId: string) => ['members', 'detail', memberId] as const,

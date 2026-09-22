@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, radius, spacing } from '@/constants/theme';
+import { colors, radius, spacing, stroke } from '@/constants/theme';
 
 import { AppText } from './AppText';
 
@@ -42,6 +42,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.surfaceMuted,
     borderRadius: radius.md,
+    borderWidth: stroke,
+    borderColor: colors.border,
     padding: spacing.xs,
     gap: spacing.xs,
   },

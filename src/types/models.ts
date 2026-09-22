@@ -57,7 +57,9 @@ export function toMember(row: MemberDetailsRow): Member {
   };
 }
 
-/** Result of join_lesson / cancel_registration. */
+export type AttendanceStatus = Enums<'attendance_status'>;
+
+/** Result of join_lesson / join_waitlist / cancel_registration. */
 export interface RegistrationResult {
   success: boolean;
   status: RegistrationStatus;
@@ -65,6 +67,8 @@ export interface RegistrationResult {
   lesson_id: string;
   registered_count: number;
   capacity: number;
+  /** join_waitlist only: 1 for the first player in line, null when joined. */
+  waitlist_position?: number | null;
 }
 
 /** Result of admin_set_member_active. */

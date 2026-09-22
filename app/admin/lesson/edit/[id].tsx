@@ -1,9 +1,18 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
-import { useLesson, useSaveLesson } from '@/features/lessons/hooks';
+import type { LessonInput } from '@/features/lessons/api';
+import {
+  useFollowingInSeries,
+  useLesson,
+  useSaveLesson,
+  useUpdateLessons,
+} from '@/features/lessons/hooks';
 import { LessonForm } from '@/features/lessons/LessonForm';
 import { lessonToFormValues } from '@/features/lessons/lessonFormSchema';
+import { applyEditToSeries, laterInSeries } from '@/features/lessons/lessonSeries';
 import { useT } from '@/i18n';
 import { getErrorMessage, logError } from '@/utils/errors';
 
@@ -11,31 +20,75 @@ export default function EditLessonScreen() {
   const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const lessonQuery = useLesson(id);
+  const lesson = lessonQuery.data;
+  const upcomingInSeries = lesson && new Date(lesson.start_time) > new Date() ? lesson : null;
+  const following = useFollowingInSeries(upcomingInSeries);
   const save = useSaveLesson();
+  const saveSeries = useUpdateLessons();
+  // The edit waiting for "this lesson only" or "this and the following".
+  const [draft, setDraft] = useState<LessonInput | null>(null);
 
   if (lessonQuery.isPending) return <LoadingState />;
   if (lessonQuery.isError) {
     return <ErrorState error={lessonQuery.error} onRetry={() => void lessonQuery.refetch()} />;
   }
-  const lesson = lessonQuery.data;
   if (!lesson) return <EmptyState icon="search-outline" title={t('lessonNotFound')} />;
 
+  const later = laterInSeries(lesson.id, following.data ?? []);
+
+  const saveThisOnly = (input: LessonInput) =>
+    save.mutate(
+      { lessonId: lesson.id, inputs: [input] },
+      {
+        onSuccess: () => {
+          setDraft(null);
+          router.back();
+        },
+        onError: (error) => logError('updateLesson', error),
+      },
+    );
+
+  const saveFollowing = (input: LessonInput) =>
+    saveSeries.mutate(applyEditToSeries(lesson, input, following.data ?? []), {
+      onSuccess: () => {
+        setDraft(null);
+        router.back();
+      },
+      onError: (error) => logError('updateLessons', error),
+    });
+
+  const error = save.error ?? saveSeries.error;
+
   return (
-    <LessonForm
-      initialValues={lessonToFormValues(lesson)}
-      requireFutureStart={new Date(lesson.start_time) > new Date()}
-      submitLabel={t('saveChanges')}
-      submitting={save.isPending}
-      submitError={save.isError ? getErrorMessage(save.error) : null}
-      onSubmit={(inputs) =>
-        save.mutate(
-          { lessonId: lesson.id, inputs },
-          {
-            onSuccess: () => router.back(),
-            onError: (error) => logError('updateLesson', error),
-          },
-        )
-      }
-    />
+    <>
+      <LessonForm
+        initialValues={lessonToFormValues(lesson)}
+        requireFutureStart={new Date(lesson.start_time) > new Date()}
+        submitLabel={t('saveChanges')}
+        submitting={save.isPending || saveSeries.isPending}
+        submitError={draft === null && error ? getErrorMessage(error) : null}
+        onSubmit={([input]) => {
+          save.reset();
+          saveSeries.reset();
+          if (later > 0) setDraft(input);
+          else saveThisOnly(input);
+        }}
+      />
+      <ConfirmationModal
+        visible={draft !== null}
+        title={t('applyToWhich')}
+        message={t('seriesEditMessage')}
+        confirmLabel={t('thisLessonOnly')}
+        secondaryLabel={
+          later === 1 ? t('thisAndFollowingOne') : t('thisAndFollowingOther', { count: later })
+        }
+        cancelLabel={t('goBack')}
+        loading={save.isPending || saveSeries.isPending}
+        error={draft !== null && error ? getErrorMessage(error) : null}
+        onConfirm={() => draft && saveThisOnly(draft)}
+        onSecondary={() => draft && saveFollowing(draft)}
+        onCancel={() => setDraft(null)}
+      />
+    </>
   );
 }

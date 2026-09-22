@@ -4,15 +4,19 @@ import { useCallback, useRef } from 'react';
 
 import { queryKeys } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
-import type { LessonStatus } from '@/types/models';
+import type { AttendanceStatus, LessonStatus } from '@/types/models';
 
 import {
   createLessons,
+  fetchFollowingInSeries,
   fetchLesson,
   fetchPastLessons,
   fetchUpcomingLessons,
+  setAttendance,
+  setLessonsStatus,
   setLessonStatus,
   updateLesson,
+  updateLessons,
   type LessonInput,
 } from './api';
 
@@ -104,6 +108,52 @@ export function useSetLessonStatus() {
   return useMutation({
     mutationFn: ({ lessonId, status }: { lessonId: string; status: LessonStatus }) =>
       setLessonStatus(lessonId, status),
+    onSettled: invalidate,
+  });
+}
+
+/**
+ * This lesson and the later, still-scheduled lessons of its weekly series.
+ * Empty for a lesson that is not part of a series.
+ */
+export function useFollowingInSeries(
+  lesson: { series_id: string | null; start_time: string } | null | undefined,
+) {
+  return useQuery({
+    queryKey: queryKeys.seriesFrom(lesson?.series_id ?? null, lesson?.start_time ?? ''),
+    queryFn: () => (lesson ? fetchFollowingInSeries(lesson) : Promise.resolve([])),
+    enabled: Boolean(lesson?.series_id),
+  });
+}
+
+/** Saves several lessons at once (a series edit): all of them or none. */
+export function useUpdateLessons() {
+  const invalidate = useInvalidateLessons();
+  return useMutation({
+    mutationFn: (lessons: (LessonInput & { id: string })[]) => updateLessons(lessons),
+    onSettled: invalidate,
+  });
+}
+
+export function useSetLessonsStatus() {
+  const invalidate = useInvalidateLessons();
+  return useMutation({
+    mutationFn: ({ lessonIds, status }: { lessonIds: string[]; status: LessonStatus }) =>
+      setLessonsStatus(lessonIds, status),
+    onSettled: invalidate,
+  });
+}
+
+export function useSetAttendance() {
+  const invalidate = useInvalidateLessons();
+  return useMutation({
+    mutationFn: ({
+      registrationId,
+      status,
+    }: {
+      registrationId: string;
+      status: AttendanceStatus | null;
+    }) => setAttendance(registrationId, status),
     onSettled: invalidate,
   });
 }

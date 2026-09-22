@@ -15,7 +15,20 @@ export async function joinLesson(lessonId: string): Promise<RegistrationResult> 
   return data as unknown as RegistrationResult;
 }
 
-/** Cancel the signed-in player's own registration. The row is kept as history. */
+/**
+ * Queue for a full lesson. If a spot opened in the meantime the player simply
+ * joins: the result's status says which ('joined' or 'waitlisted').
+ */
+export async function joinWaitlist(lessonId: string): Promise<RegistrationResult> {
+  const { data, error } = await supabase.rpc('join_waitlist', { p_lesson_id: lessonId });
+  if (error) throw error;
+  return data as unknown as RegistrationResult;
+}
+
+/**
+ * Cancel the signed-in player's own registration, or take them off the
+ * waitlist. The row is kept as history.
+ */
 export async function cancelRegistration(
   lessonId: string,
   reason: string,
@@ -30,7 +43,8 @@ export async function cancelRegistration(
 }
 
 const PLAYER_REGISTRATION_COLUMNS = `
-  id, status, joined_at, cancelled_at, cancellation_reason,
+  id, status, joined_at, cancelled_at, cancellation_reason, promoted_at,
+  attendance:lesson_attendance ( status ),
   lesson:lessons ( id, title, start_time, end_time, location, status, capacity, registered_count )
 `;
 
@@ -46,7 +60,8 @@ export async function fetchPlayerRegistrations(playerId: string): Promise<Player
   return data;
 }
 
-export type HistoryLabel = 'Registered' | 'Cancelled' | 'Lesson cancelled';
+export type HistoryLabel =
+  'registered' | 'present' | 'absent' | 'cancelled' | 'lessonCancelled' | 'missedWaitlist';
 
 export interface SplitRegistrations {
   upcoming: PlayerRegistration[];
@@ -54,8 +69,9 @@ export interface SplitRegistrations {
 }
 
 /**
- * Upcoming: active registrations for scheduled lessons that have not ended.
- * History: everything else (past lessons, own cancellations, cancelled lessons).
+ * Upcoming: registrations and waitlist places for scheduled lessons that have
+ * not ended. History: everything else (past lessons, own cancellations,
+ * cancelled lessons).
  */
 export function splitRegistrations(
   registrations: PlayerRegistration[],
@@ -65,7 +81,7 @@ export function splitRegistrations(
   const history: PlayerRegistration[] = [];
   for (const registration of registrations) {
     const isUpcoming =
-      registration.status === 'joined' &&
+      registration.status !== 'cancelled' &&
       registration.lesson.status === 'scheduled' &&
       new Date(registration.lesson.end_time) > now;
     (isUpcoming ? upcoming : history).push(registration);
@@ -76,7 +92,25 @@ export function splitRegistrations(
 }
 
 export function getHistoryLabel(registration: PlayerRegistration): HistoryLabel {
-  if (registration.lesson.status === 'cancelled') return 'Lesson cancelled';
-  if (registration.status === 'cancelled') return 'Cancelled';
-  return 'Registered';
+  if (registration.lesson.status === 'cancelled') return 'lessonCancelled';
+  if (registration.status === 'cancelled') return 'cancelled';
+  if (registration.status === 'waitlisted') return 'missedWaitlist';
+  if (registration.attendance?.status === 'present') return 'present';
+  if (registration.attendance?.status === 'absent') return 'absent';
+  return 'registered';
+}
+
+/** How many past lessons a player attended, out of those the coach marked. */
+export function attendanceSummary(registrations: PlayerRegistration[]): {
+  present: number;
+  marked: number;
+} {
+  let present = 0;
+  let marked = 0;
+  for (const registration of registrations) {
+    if (registration.status !== 'joined' || !registration.attendance) continue;
+    marked += 1;
+    if (registration.attendance.status === 'present') present += 1;
+  }
+  return { present, marked };
 }

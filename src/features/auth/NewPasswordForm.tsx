@@ -8,10 +8,9 @@ import { Banner } from '@/components/Banner';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { spacing } from '@/constants/theme';
+import { useT } from '@/i18n';
+import { useValidationMessage } from '@/i18n/validation';
 import { getErrorMessage } from '@/utils/errors';
-
-export const PASSWORD_HINT =
-  'At least 8 characters, with an uppercase letter, a lowercase letter and a number.';
 
 /** Mirrors the Supabase Auth password policy (length + lower/upper case + digit). */
 export const newPasswordSchema = z
@@ -55,6 +54,8 @@ export function NewPasswordForm({
   error,
   onSubmit,
 }: NewPasswordFormProps) {
+  const t = useT();
+  const v = useValidationMessage();
   const schema = useMemo(() => createPasswordFormSchema(askCurrentPassword), [askCurrentPassword]);
   const { control, handleSubmit, formState } = useForm<PasswordFormValues>({
     resolver: zodResolver(schema),
@@ -73,14 +74,14 @@ export function NewPasswordForm({
           name="currentPassword"
           render={({ field }) => (
             <TextField
-              label="Current password"
+              label={t('currentPassword')}
               value={field.value}
               onChangeText={field.onChange}
               onBlur={field.onBlur}
               secureTextEntry
               autoComplete="current-password"
               textContentType="password"
-              error={formState.errors.currentPassword?.message}
+              error={v(formState.errors.currentPassword?.message)}
             />
           )}
         />
@@ -90,15 +91,15 @@ export function NewPasswordForm({
         name="password"
         render={({ field }) => (
           <TextField
-            label="New password"
+            label={t('newPassword')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
             secureTextEntry
             autoComplete="new-password"
             textContentType="newPassword"
-            error={formState.errors.password?.message}
-            hint={PASSWORD_HINT}
+            error={v(formState.errors.password?.message)}
+            hint={t('passwordHint')}
           />
         )}
       />
@@ -107,7 +108,7 @@ export function NewPasswordForm({
         name="confirm"
         render={({ field }) => (
           <TextField
-            label="Confirm new password"
+            label={t('confirmNewPassword')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -116,7 +117,7 @@ export function NewPasswordForm({
             textContentType="newPassword"
             returnKeyType="done"
             onSubmitEditing={submit}
-            error={formState.errors.confirm?.message}
+            error={v(formState.errors.confirm?.message)}
           />
         )}
       />

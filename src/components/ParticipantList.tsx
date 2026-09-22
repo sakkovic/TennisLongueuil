@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, View } from 'react-native';
 
 import { colors, spacing } from '@/constants/theme';
+import { useT } from '@/i18n';
 
 import { AppText } from './AppText';
 import { PlayerAvatar } from './PlayerAvatar';
@@ -20,15 +21,12 @@ interface ParticipantListProps {
 }
 
 /** Players currently registered for a lesson (never cancelled ones). */
-export function ParticipantList({
-  participants,
-  currentUserId,
-  emptyText = 'No players yet. Be the first to join!',
-}: ParticipantListProps) {
+export function ParticipantList({ participants, currentUserId, emptyText }: ParticipantListProps) {
+  const t = useT();
   if (participants.length === 0) {
     return (
       <AppText tone="muted" style={styles.empty}>
-        {emptyText}
+        {emptyText ?? t('noPlayersYetJoin')}
       </AppText>
     );
   }
@@ -47,7 +45,7 @@ export function ParticipantList({
             />
             <AppText variant="bodyStrong" style={styles.name} numberOfLines={1}>
               {participant.full_name}
-              {isMe ? <AppText tone="muted"> (you)</AppText> : null}
+              {isMe ? <AppText tone="muted">{t('youSuffix')}</AppText> : null}
             </AppText>
             <Ionicons name="checkmark-circle" size={20} color={colors.success} />
           </View>

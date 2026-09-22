@@ -4,7 +4,7 @@ import {
   useFonts,
 } from '@expo-google-fonts/playfair-display';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { DarkTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
+import { DefaultTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -23,11 +23,11 @@ void configureNotificationHandler();
 
 void SplashScreen.preventAutoHideAsync();
 
-/** Dark navigation theme, so screen transitions never flash white. */
+/** Light navigation theme, matching the white app background. */
 const navigationTheme: Theme = {
-  ...DarkTheme,
+  ...DefaultTheme,
   colors: {
-    ...DarkTheme.colors,
+    ...DefaultTheme.colors,
     primary: colors.primary,
     background: colors.background,
     card: colors.tabBar,
@@ -54,7 +54,7 @@ export default function RootLayout() {
         <I18nProvider>
           <AuthProvider>
             <ThemeProvider value={navigationTheme}>
-              <StatusBar style="light" />
+              <StatusBar style="dark" />
               <RootNavigator />
             </ThemeProvider>
           </AuthProvider>

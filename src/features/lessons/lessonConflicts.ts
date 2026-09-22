@@ -52,10 +52,10 @@ export function conflictMessage(conflicts: LessonInput[], total: number): string
       ? `${dates} a déjà une leçon à cette heure et à cet endroit.`
       : `${dates} ont déjà une leçon à cette heure et à cet endroit.`;
     if (conflicts.length === total) return booked;
-    return `${booked} Vous pouvez passer ${one ? 'cette semaine' : 'ces semaines'} ou les créer quand même.`;
+    return `${booked} ${one ? 'Cette semaine sera ignorée' : 'Ces semaines seront ignorées'}.`;
   }
   if (conflicts.length === total) {
     return `${dates} already ${one ? 'has' : 'have'} a lesson at this time and place.`;
   }
-  return `${dates} already ${one ? 'has' : 'have'} a lesson at this time and place. You can skip ${one ? 'that week' : 'those weeks'} or create them anyway.`;
+  return `${dates} already ${one ? 'has' : 'have'} a lesson at this time and place. ${one ? 'That week will be skipped' : 'Those weeks will be skipped'}.`;
 }

@@ -5,17 +5,11 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
-import {
-  APP_NAME,
-  COACH_CERTIFICATION,
-  COACH_NAME,
-  HOURLY_RATE,
-  SESSION_MINUTES,
-} from '@/constants/brand';
-import { DEFAULT_LESSON_LOCATION } from '@/constants/lessons';
-import { colors, fonts, radius, shadow, spacing } from '@/constants/theme';
+import { APP_NAME, COACH_CERTIFICATION, COACH_NAME, HOURLY_RATE } from '@/constants/brand';
+import { DEFAULT_LESSON_LOCATION, PLAYERS_PER_COURT } from '@/constants/lessons';
+import { colors, fonts, radius, shadow, spacing, stroke } from '@/constants/theme';
 import { useT } from '@/i18n';
-import { formatShortDate, formatTime } from '@/utils/date';
+import { formatMonthDayShort, formatTime } from '@/utils/date';
 
 import { slotLabel, type PosterSlot, type PosterSlotTone } from './posterSessions';
 
@@ -38,6 +32,8 @@ interface SessionPosterProps {
   onPressSlot?: (id: string) => void;
   primaryAction: PosterAction;
   secondaryAction?: { label: string; onPress: () => void };
+  /** First name shown under the court on signed-in homes. */
+  playerName?: string;
 }
 
 /**
@@ -51,6 +47,7 @@ export function SessionPoster({
   onPressSlot,
   primaryAction,
   secondaryAction,
+  playerName,
 }: SessionPosterProps) {
   const t = useT();
 
@@ -59,6 +56,14 @@ export function SessionPoster({
       <CourtHero />
 
       <View style={styles.titleBlock}>
+        {playerName ? (
+          <AppText style={styles.hello} maxFontSizeMultiplier={1.2}>
+            {t('helloName', { name: playerName })}
+          </AppText>
+        ) : null}
+        <AppText style={styles.tagline} maxFontSizeMultiplier={1.2}>
+          {t('improveGameAt')}
+        </AppText>
         <AppText
           style={styles.wordmark}
           maxFontSizeMultiplier={1.15}
@@ -67,22 +72,6 @@ export function SessionPoster({
           accessibilityRole="header"
         >
           {APP_NAME}
-        </AppText>
-        <AppText style={styles.headline} maxFontSizeMultiplier={1.2}>
-          {t('posterHeadline', { minutes: SESSION_MINUTES })}
-        </AppText>
-        <View style={styles.rule} />
-        <View style={styles.locationRow}>
-          <Ionicons name="location" size={15} color={colors.primary} />
-          <AppText style={styles.location} maxFontSizeMultiplier={1.2}>
-            {DEFAULT_LESSON_LOCATION}
-          </AppText>
-        </View>
-      </View>
-
-      <View style={styles.band}>
-        <AppText style={styles.bandText} maxFontSizeMultiplier={1.2}>
-          {t('posterInfo', { minutes: SESSION_MINUTES, cert: COACH_CERTIFICATION })}
         </AppText>
       </View>
 
@@ -110,7 +99,7 @@ export function SessionPoster({
             {t('perHour')}
           </AppText>
           <AppText variant="caption" tone="muted" style={styles.centered} numberOfLines={2}>
-            {t('courtFeesShared')}
+            {t('courtFeeSplit', { count: PLAYERS_PER_COURT })}
           </AppText>
         </View>
       </View>
@@ -125,7 +114,11 @@ export function SessionPoster({
       ) : null}
 
       <AppText variant="caption" tone="muted" style={styles.coach}>
-        {t('posterCoach', { name: COACH_NAME, cert: COACH_CERTIFICATION })}
+        {t('posterCoach', {
+          name: COACH_NAME,
+          cert: COACH_CERTIFICATION,
+          place: DEFAULT_LESSON_LOCATION,
+        })}
       </AppText>
     </View>
   );
@@ -165,7 +158,7 @@ function SlotTile({ slot, onPress }: { slot: PosterSlot; onPress?: (id: string) 
   const t = useT();
   const label = slotLabel(slot);
   const pill = pillColors[slot.tone];
-  const day = formatShortDate(slot.startTime).toUpperCase();
+  const day = formatMonthDayShort(slot.startTime);
   const time = formatTime(slot.startTime);
   const text = t(label.key, label.vars);
 
@@ -238,10 +231,10 @@ const SINGLES_INSET = `${(4.5 / 36) * 100}%` as const;
 const SERVICE_OFFSET = `${(18 / 78) * 100}%` as const;
 
 const styles = StyleSheet.create({
-  poster: { gap: spacing.md },
+  poster: { gap: spacing.xl },
 
   hero: {
-    height: 176,
+    height: 148,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: -spacing.lg,
@@ -272,21 +265,34 @@ const styles = StyleSheet.create({
   },
   glowOuter: {
     position: 'absolute',
-    width: 176,
-    height: 176,
-    borderRadius: 88,
+    width: 148,
+    height: 148,
+    borderRadius: 74,
     backgroundColor: colors.glowFaint,
   },
   glowInner: {
     position: 'absolute',
-    width: 136,
-    height: 136,
-    borderRadius: 68,
+    width: 112,
+    height: 112,
+    borderRadius: 56,
     backgroundColor: colors.glow,
   },
-  emblem: { width: 104, height: 104 },
+  emblem: { width: 88, height: 88 },
 
-  titleBlock: { alignItems: 'center', gap: spacing.sm },
+  titleBlock: { alignItems: 'center', gap: spacing.md },
+  hello: {
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 24,
+    lineHeight: 30,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  tagline: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
   wordmark: {
     fontFamily: fonts.display,
     fontSize: 44,
@@ -294,58 +300,20 @@ const styles = StyleSheet.create({
     color: colors.primary,
     textAlign: 'center',
   },
-  headline: {
-    fontFamily: fonts.displaySemiBold,
-    fontSize: 16,
-    lineHeight: 22,
-    letterSpacing: 3.5,
-    textTransform: 'uppercase',
-    color: colors.text,
-    textAlign: 'center',
-    fontVariant: ['lining-nums'],
-  },
-  rule: { width: '64%', height: 1, backgroundColor: colors.primary, opacity: 0.45 },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2 },
-  location: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '700',
-    letterSpacing: 2.5,
-    textTransform: 'uppercase',
-    color: colors.text,
-  },
 
-  band: {
-    marginHorizontal: -spacing.lg,
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.primarySoft,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-  },
-  bandText: {
-    fontSize: 11,
-    lineHeight: 16,
-    fontWeight: '800',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    color: colors.accent,
-    textAlign: 'center',
-  },
-
-  tiles: { flexDirection: 'row', gap: spacing.sm },
+  tiles: { flexDirection: 'row', gap: spacing.md },
   tile: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs + 1,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
+    gap: spacing.sm,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderRadius: radius.xl,
+    borderWidth: stroke,
+    borderColor: colors.borderStrong,
+    ...shadow.card,
   },
   tilePressed: { backgroundColor: colors.surfacePressed },
   tileLoading: { minHeight: 118 },

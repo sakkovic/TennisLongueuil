@@ -11,7 +11,9 @@ import { Button } from '@/components/Button';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { TextField } from '@/components/TextField';
 import { signUp } from '@/features/auth/api';
-import { newPasswordSchema, PASSWORD_HINT } from '@/features/auth/NewPasswordForm';
+import { newPasswordSchema } from '@/features/auth/NewPasswordForm';
+import { useT } from '@/i18n';
+import { useValidationMessage } from '@/i18n/validation';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 const signUpSchema = z
@@ -37,6 +39,8 @@ type SignUpValues = z.infer<typeof signUpSchema>;
  * the member lands on "Waiting for approval" until the coach approves them.
  */
 export default function SignUpScreen() {
+  const t = useT();
+  const v = useValidationMessage();
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
@@ -63,30 +67,25 @@ export default function SignUpScreen() {
   if (confirmationEmail) {
     return (
       <ScreenContainer keyboard edges={['bottom']}>
-        <AppText variant="title">Confirm your email</AppText>
-        <Banner tone="info" message={`We sent a confirmation link to ${confirmationEmail}.`} />
-        <AppText tone="muted">
-          Open it on this phone to confirm your address, then sign in. Your coach still needs to
-          approve your account before you can see lessons.
-        </AppText>
-        <Button label="Back to sign in" onPress={() => router.replace('/login')} />
+        <AppText variant="title">{t('confirmYourEmail')}</AppText>
+        <Banner tone="info" message={t('confirmationSent', { email: confirmationEmail })} />
+        <AppText tone="muted">{t('confirmationHint')}</AppText>
+        <Button label={t('backToSignIn')} onPress={() => router.replace('/login')} />
       </ScreenContainer>
     );
   }
 
   return (
     <ScreenContainer keyboard edges={['bottom']}>
-      <AppText variant="title">Join the club</AppText>
-      <AppText tone="muted">
-        Create your account, then your coach approves it before your first lesson.
-      </AppText>
+      <AppText variant="title">{t('joinTheClub')}</AppText>
+      <AppText tone="muted">{t('joinTheClubHint')}</AppText>
 
       <Controller
         control={control}
         name="fullName"
         render={({ field }) => (
           <TextField
-            label="Full name"
+            label={t('fullName')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -95,7 +94,7 @@ export default function SignUpScreen() {
             textContentType="name"
             returnKeyType="next"
             onSubmitEditing={() => emailRef.current?.focus()}
-            error={formState.errors.fullName?.message}
+            error={v(formState.errors.fullName?.message)}
             testID="signup-name"
           />
         )}
@@ -107,7 +106,7 @@ export default function SignUpScreen() {
         render={({ field }) => (
           <TextField
             ref={emailRef}
-            label="Email"
+            label={t('email')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -118,7 +117,7 @@ export default function SignUpScreen() {
             textContentType="emailAddress"
             returnKeyType="next"
             onSubmitEditing={() => passwordRef.current?.focus()}
-            error={formState.errors.email?.message}
+            error={v(formState.errors.email?.message)}
             testID="signup-email"
           />
         )}
@@ -130,7 +129,7 @@ export default function SignUpScreen() {
         render={({ field }) => (
           <TextField
             ref={passwordRef}
-            label="Password"
+            label={t('password')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -139,8 +138,8 @@ export default function SignUpScreen() {
             textContentType="newPassword"
             returnKeyType="next"
             onSubmitEditing={() => confirmRef.current?.focus()}
-            error={formState.errors.password?.message}
-            hint={PASSWORD_HINT}
+            error={v(formState.errors.password?.message)}
+            hint={t('passwordHint')}
             testID="signup-password"
           />
         )}
@@ -152,7 +151,7 @@ export default function SignUpScreen() {
         render={({ field }) => (
           <TextField
             ref={confirmRef}
-            label="Confirm password"
+            label={t('confirmPassword')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -161,7 +160,7 @@ export default function SignUpScreen() {
             textContentType="newPassword"
             returnKeyType="go"
             onSubmitEditing={onSubmit}
-            error={formState.errors.confirm?.message}
+            error={v(formState.errors.confirm?.message)}
             testID="signup-confirm"
           />
         )}
@@ -170,7 +169,7 @@ export default function SignUpScreen() {
       {submitError ? <Banner tone="danger" message={submitError} /> : null}
 
       <Button
-        label="Create account"
+        label={t('createAccount')}
         onPress={onSubmit}
         loading={formState.isSubmitting}
         testID="signup-submit"

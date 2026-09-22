@@ -4,7 +4,7 @@ import { useInvalidateLessons } from '@/features/lessons/hooks';
 import { cancelLessonReminder, scheduleLessonReminder } from '@/features/notifications/reminders';
 import { queryKeys } from '@/lib/queryClient';
 
-import { cancelRegistration, fetchPlayerRegistrations, joinLesson } from './api';
+import { cancelRegistration, fetchPlayerRegistrations, joinLesson, joinWaitlist } from './api';
 
 export interface JoinLessonInput {
   lessonId: string;
@@ -23,6 +23,19 @@ export function useJoinLesson() {
     mutationFn: async ({ lessonId, title, startTime }: JoinLessonInput) => {
       const result = await joinLesson(lessonId);
       void scheduleLessonReminder({ lessonId, title, startTime });
+      return result;
+    },
+    onSettled: invalidate,
+  });
+}
+
+/** Queue for a full lesson (or join it, if a spot opened in the meantime). */
+export function useJoinWaitlist() {
+  const invalidate = useInvalidateLessons();
+  return useMutation({
+    mutationFn: async ({ lessonId, title, startTime }: JoinLessonInput) => {
+      const result = await joinWaitlist(lessonId);
+      if (result.status === 'joined') void scheduleLessonReminder({ lessonId, title, startTime });
       return result;
     },
     onSettled: invalidate,

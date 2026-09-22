@@ -4,12 +4,14 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { AccountStateBadge, LevelBadge, StatusBadge } from '@/components/Badges';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
-import { colors, radius, shadow, spacing } from '@/constants/theme';
+import { colors, radius, shadow, spacing, stroke } from '@/constants/theme';
 import { useT } from '@/i18n';
 import type { Member } from '@/types/models';
 
 interface PlayerProfileCardProps {
   member: Member;
+  /** Screen title shown in the top band, so the Profile tab needs no separate header. */
+  title?: string;
   levelRank?: number | null;
   /** When provided, shows a camera button on the photo. */
   onChangePhoto?: () => void;
@@ -21,6 +23,7 @@ interface PlayerProfileCardProps {
 /** The member card: photo, name, level badge, contact details and upcoming lessons. */
 export function PlayerProfileCard({
   member,
+  title,
   levelRank,
   onChangePhoto,
   uploadingPhoto = false,
@@ -33,6 +36,17 @@ export function PlayerProfileCard({
     <View style={styles.card}>
       <View style={styles.hero}>
         <View style={styles.courtLine} />
+        {title ? (
+          <AppText
+            variant="title"
+            style={styles.heroTitle}
+            numberOfLines={1}
+            maxFontSizeMultiplier={1.2}
+            accessibilityRole="header"
+          >
+            {title}
+          </AppText>
+        ) : null}
       </View>
       {/* In normal flow (negative margin) so the camera button stays on top and touchable. */}
       <View style={styles.photoWrapper}>
@@ -121,14 +135,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: stroke,
     borderColor: colors.border,
     ...shadow.card,
   },
   hero: {
     height: 96,
     backgroundColor: colors.primarySoft,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: stroke,
     borderBottomColor: colors.border,
   },
   // A subtle aqua court service line across the header.
@@ -141,6 +155,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     opacity: 0.35,
   },
+  // Top-left, above the photo, which starts 40 points down the 96-point band.
+  heroTitle: { position: 'absolute', top: spacing.sm, left: spacing.lg, maxWidth: '30%' },
   photoWrapper: { alignSelf: 'center', marginTop: -56 },
   photoRing: {
     borderRadius: 60,
@@ -171,7 +187,7 @@ const styles = StyleSheet.create({
   },
   center: { textAlign: 'center' },
   details: {
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: stroke,
     borderTopColor: colors.border,
     padding: spacing.xl,
     gap: spacing.lg,
@@ -183,6 +199,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: colors.primarySoft,
     borderRadius: radius.md,
+    borderWidth: stroke,
+    borderColor: colors.border,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
   },

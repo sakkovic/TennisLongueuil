@@ -1,3 +1,4 @@
+import { setDateLocale } from '../date';
 import { FALLBACK_ERROR_MESSAGE, getErrorCode, getErrorMessage, isBusinessError } from '../errors';
 
 const rpcError = (message: string) => ({ code: 'P0001', message, details: null, hint: null });
@@ -77,6 +78,24 @@ describe('getErrorMessage', () => {
     );
     expect(getErrorMessage(undefined)).toBe(FALLBACK_ERROR_MESSAGE);
     expect(getErrorMessage('boom')).toBe(FALLBACK_ERROR_MESSAGE);
+  });
+});
+
+describe('French messages', () => {
+  afterEach(() => setDateLocale('en'));
+
+  it('speaks the app language', () => {
+    setDateLocale('fr');
+    expect(getErrorMessage(rpcError('LESSON_FULL'))).toBe(
+      'Désolé, cette leçon vient d’être complète.',
+    );
+    expect(getErrorMessage(rpcError('ALREADY_WAITLISTED'))).toBe(
+      'Vous êtes déjà sur la liste d’attente de cette leçon.',
+    );
+    expect(
+      getErrorMessage({ name: 'AuthApiError', code: 'invalid_credentials', message: 'x' }),
+    ).toBe('Courriel ou mot de passe incorrect.');
+    expect(getErrorMessage(undefined)).toBe('Une erreur est survenue. Veuillez réessayer.');
   });
 });
 

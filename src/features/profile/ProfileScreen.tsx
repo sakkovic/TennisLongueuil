@@ -8,10 +8,9 @@ import { Banner } from '@/components/Banner';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ListRow } from '@/components/ListRow';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { ScreenHeader } from '@/components/ScreenHeader';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { APP_NAME } from '@/constants/brand';
-import { colors, radius, spacing } from '@/constants/theme';
+import { colors, radius, spacing, stroke } from '@/constants/theme';
 import { signOut } from '@/features/auth/api';
 import { useAuth, useCurrentMember } from '@/features/auth/AuthProvider';
 import { findLevel, useLevels } from '@/features/levels/hooks';
@@ -72,9 +71,8 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
 
   return (
     <ScreenContainer edges={['top']} onRefresh={retryProfile} refreshing={isRetryingProfile}>
-      <ScreenHeader title={t('profile')} />
-
       <PlayerProfileCard
+        title={t('profile')}
         member={member}
         levelRank={findLevel(levels, member.player_level_id)?.rank}
         onChangePhoto={pickPhoto}
@@ -93,8 +91,8 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
           <AppText variant="bodyStrong">{t('language')}</AppText>
           <SegmentedControl
             options={[
-              { value: 'en', label: t('languageEnglish') },
               { value: 'fr', label: t('languageFrench') },
+              { value: 'en', label: t('languageEnglish') },
             ]}
             value={locale}
             onChange={(next) => setLocale(next as Locale)}
@@ -144,9 +142,9 @@ const styles = StyleSheet.create({
   actions: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: stroke,
     borderColor: colors.border,
     overflow: 'hidden',
   },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 52 },
+  divider: { height: stroke, backgroundColor: colors.border, marginLeft: 52 },
 });

@@ -67,14 +67,19 @@ export default function NewLessonScreen() {
         visible={draft !== null}
         title={allCollide ? t('conflictTitleAll') : t('conflictTitleSome')}
         message={draft ? conflictMessage(conflicts, draft.length) : undefined}
-        confirmLabel={
-          allCollide ? t('createAnyway') : t('createOther', { count: freeInputs.length })
-        }
-        secondaryLabel={allCollide ? undefined : t('createAllAnyway')}
+        confirmLabel={allCollide ? t('gotIt') : t('createOther', { count: freeInputs.length })}
+        secondaryLabel={allCollide ? t('createAnyway') : t('createAllAnyway')}
         cancelLabel={t('goBack')}
         loading={save.isPending}
         error={save.isError ? getErrorMessage(save.error) : null}
-        onConfirm={() => create(allCollide ? (draft ?? []) : freeInputs)}
+        onConfirm={() => {
+          if (allCollide) {
+            setDraft(null);
+            setConflicts([]);
+            return;
+          }
+          create(freeInputs);
+        }}
         onSecondary={draft ? () => create(draft) : undefined}
         onCancel={() => {
           setDraft(null);

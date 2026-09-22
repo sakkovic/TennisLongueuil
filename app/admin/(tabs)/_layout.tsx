@@ -13,7 +13,7 @@ export default function AdminTabsLayout() {
         options={{
           title: t('tabHome'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} color={color} size={size} />
+            <Ionicons name={focused ? 'home' : 'home-outline'} color={color} size={24} />
           ),
         }}
       />
@@ -25,7 +25,7 @@ export default function AdminTabsLayout() {
             <Ionicons
               name={focused ? 'tennisball' : 'tennisball-outline'}
               color={color}
-              size={size}
+              size={24}
             />
           ),
         }}
@@ -35,7 +35,7 @@ export default function AdminTabsLayout() {
         options={{
           title: t('tabMembers'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'people' : 'people-outline'} color={color} size={size} />
+            <Ionicons name={focused ? 'people' : 'people-outline'} color={color} size={24} />
           ),
         }}
       />
@@ -44,7 +44,7 @@ export default function AdminTabsLayout() {
         options={{
           title: t('tabProfile'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} color={color} size={size} />
+            <Ionicons name={focused ? 'person' : 'person-outline'} color={color} size={24} />
           ),
         }}
       />

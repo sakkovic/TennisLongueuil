@@ -13,10 +13,19 @@ export default function PlayerTabsLayout() {
         options={{
           title: t('tabHome'),
           tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'home' : 'home-outline'} color={color} size={24} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="lessons"
+        options={{
+          title: t('tabLessons'),
+          tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? 'tennisball' : 'tennisball-outline'}
               color={color}
-              size={size}
+              size={24}
             />
           ),
         }}
@@ -26,7 +35,7 @@ export default function PlayerTabsLayout() {
         options={{
           title: t('tabMyLessons'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} color={color} size={size} />
+            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} color={color} size={24} />
           ),
         }}
       />
@@ -35,7 +44,7 @@ export default function PlayerTabsLayout() {
         options={{
           title: t('tabProfile'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} color={color} size={size} />
+            <Ionicons name={focused ? 'person' : 'person-outline'} color={color} size={24} />
           ),
         }}
       />

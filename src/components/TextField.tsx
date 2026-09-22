@@ -1,7 +1,7 @@
 import { useState, type Ref } from 'react';
 import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, spacing, stroke, typography } from '@/constants/theme';
 
 import { AppText } from './AppText';
 
@@ -36,7 +36,7 @@ export function TextField({
         placeholderTextColor={colors.textSubtle}
         selectionColor={colors.primary}
         cursorColor={colors.primary}
-        keyboardAppearance="dark"
+        keyboardAppearance="light"
         maxFontSizeMultiplier={1.4}
         multiline={multiline}
         onFocus={(event) => {
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.text,
     backgroundColor: colors.surface,
-    borderWidth: 1,
+    borderWidth: stroke,
     borderColor: colors.border,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md + 2,

@@ -16,7 +16,14 @@ export const stackScreenOptions: NativeStackNavigationOptions = {
 export const tabScreenOptions: BottomTabNavigationOptions = {
   headerShown: false,
   tabBarActiveTintColor: colors.primary,
-  tabBarInactiveTintColor: colors.textSubtle,
-  tabBarStyle: { backgroundColor: colors.tabBar, borderTopColor: colors.border },
-  tabBarLabelStyle: { fontWeight: '600' },
+  tabBarInactiveTintColor: colors.textMuted,
+  tabBarStyle: {
+    backgroundColor: colors.tabBar,
+    borderTopColor: colors.borderStrong,
+    borderTopWidth: 1,
+    height: 64,
+    paddingTop: 6,
+    paddingBottom: 8,
+  },
+  tabBarLabelStyle: { fontWeight: '700', fontSize: 11 },
 };

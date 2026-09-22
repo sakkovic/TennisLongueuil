@@ -5,14 +5,19 @@ import { AppText } from '@/components/AppText';
 import { StatusBadge, type BadgeTone } from '@/components/Badges';
 import { Card } from '@/components/Card';
 import { colors, spacing } from '@/constants/theme';
+import { useT } from '@/i18n';
+import type { TranslationKey } from '@/i18n/strings';
 import { formatShortDate, formatTimeRange } from '@/utils/date';
 
 import { getHistoryLabel, type HistoryLabel, type PlayerRegistration } from './api';
 
-const historyTones: Record<HistoryLabel, BadgeTone> = {
-  Registered: 'neutral',
-  Cancelled: 'warning',
-  'Lesson cancelled': 'danger',
+const historyBadges: Record<HistoryLabel, { key: TranslationKey; tone: BadgeTone }> = {
+  registered: { key: 'registered', tone: 'neutral' },
+  present: { key: 'present', tone: 'success' },
+  absent: { key: 'absent', tone: 'warning' },
+  cancelled: { key: 'cancelled', tone: 'warning' },
+  lessonCancelled: { key: 'lessonCancelled', tone: 'danger' },
+  missedWaitlist: { key: 'stayedOnWaitlist', tone: 'neutral' },
 };
 
 interface RegistrationRowProps {
@@ -29,8 +34,14 @@ export function RegistrationRow({
   onPress,
   showReason = false,
 }: RegistrationRowProps) {
+  const t = useT();
   const { lesson } = registration;
-  const label = variant === 'upcoming' ? null : getHistoryLabel(registration);
+  const badge =
+    variant === 'history'
+      ? historyBadges[getHistoryLabel(registration)]
+      : registration.status === 'waitlisted'
+        ? ({ key: 'onWaitlist', tone: 'info' } as const)
+        : ({ key: 'registered', tone: 'success' } as const);
 
   return (
     <Card
@@ -48,15 +59,20 @@ export function RegistrationRow({
             </AppText>
           </View>
         </View>
-        {label ? (
-          <StatusBadge label={label} tone={historyTones[label]} />
-        ) : (
-          <StatusBadge label="Registered" tone="success" icon="checkmark" />
-        )}
+        <StatusBadge
+          label={t(badge.key)}
+          tone={badge.tone}
+          icon={badge.tone === 'success' ? 'checkmark' : undefined}
+        />
       </View>
+      {variant === 'upcoming' && registration.status === 'joined' && registration.promoted_at ? (
+        <AppText variant="caption" tone="muted">
+          {t('movedUp')}
+        </AppText>
+      ) : null}
       {showReason && registration.status === 'cancelled' && registration.cancellation_reason ? (
         <AppText variant="caption" tone="muted">
-          Reason: {registration.cancellation_reason}
+          {t('reasonLabel', { reason: registration.cancellation_reason })}
         </AppText>
       ) : null}
     </Card>

@@ -71,4 +71,24 @@ describe('getLessonAvailability', () => {
     const after = new Date('2026-09-29T00:00:00.000Z');
     expect(getLessonAvailability(makeLesson(), false, after).state).toBe('completed');
   });
+
+  it('offers the waitlist when a lesson is full and registration is open', () => {
+    const result = getLessonAvailability(makeLesson({ registered_count: 4 }), false, NOW);
+    expect(result).toMatchObject({ state: 'full', canJoin: false, canJoinWaitlist: true });
+  });
+
+  it('closes the waitlist with registration', () => {
+    const full = makeLesson({ registered_count: 4 });
+    expect(getLessonAvailability(full, false, hoursBeforeStart(3)).canJoinWaitlist).toBe(false);
+    expect(
+      getLessonAvailability({ ...full, registration_open: false }, false, NOW).canJoinWaitlist,
+    ).toBe(false);
+  });
+
+  it('lets a waiting player leave the waitlist until the lesson starts', () => {
+    const lesson = makeLesson({ registered_count: 4 });
+    const result = getLessonAvailability(lesson, 'waitlisted', hoursBeforeStart(2));
+    expect(result).toMatchObject({ state: 'waitlisted', canCancel: true, canJoinWaitlist: false });
+    expect(AVAILABILITY_LABEL_KEYS[result.state]).toBe('onWaitlist');
+  });
 });

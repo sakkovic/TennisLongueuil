@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
-import { colors, spacing } from '@/constants/theme';
+import { colors, spacing, stroke } from '@/constants/theme';
 
 interface ScreenContainerProps {
   children: ReactNode;
@@ -84,9 +84,9 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   fill: { flex: 1 },
   content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl,
-    gap: spacing.lg,
+    padding: spacing.xl,
+    paddingBottom: spacing.xxxl,
+    gap: spacing.xl,
     width: '100%',
     maxWidth: 640,
     alignSelf: 'center',
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: stroke,
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
   },

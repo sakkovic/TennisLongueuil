@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radius, spacing } from '@/constants/theme';
+import { colors, radius, spacing, stroke } from '@/constants/theme';
+import { useT } from '@/i18n';
 
 import { AppText } from './AppText';
 import { Button } from './Button';
@@ -32,7 +33,7 @@ export function ConfirmationModal({
   title,
   message,
   confirmLabel,
-  cancelLabel = 'Go back',
+  cancelLabel,
   secondaryLabel,
   onConfirm,
   onCancel,
@@ -42,6 +43,7 @@ export function ConfirmationModal({
   error,
   children,
 }: ConfirmationModalProps) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const dismiss = () => {
     if (!loading) onCancel();
@@ -102,7 +104,12 @@ export function ConfirmationModal({
                 disabled={loading}
               />
             ) : null}
-            <Button label={cancelLabel} variant="ghost" onPress={dismiss} disabled={loading} />
+            <Button
+              label={cancelLabel ?? t('goBack')}
+              variant="ghost"
+              onPress={dismiss}
+              disabled={loading}
+            />
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -117,6 +124,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
+    borderTopWidth: stroke,
+    borderColor: colors.border,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
     gap: spacing.md,
@@ -135,6 +144,8 @@ const styles = StyleSheet.create({
   error: {
     backgroundColor: colors.dangerSoft,
     borderRadius: radius.md,
+    borderWidth: stroke,
+    borderColor: colors.dangerBorder,
     padding: spacing.md,
   },
   actions: { gap: spacing.xs, marginTop: spacing.sm },

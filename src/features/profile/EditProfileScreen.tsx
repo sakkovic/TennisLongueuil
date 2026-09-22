@@ -13,6 +13,7 @@ import { TextField } from '@/components/TextField';
 import { spacing } from '@/constants/theme';
 import { useCurrentMember } from '@/features/auth/AuthProvider';
 import { useT } from '@/i18n';
+import { useValidationMessage } from '@/i18n/validation';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 import { useUpdateProfile } from './hooks';
@@ -36,6 +37,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 /** Members can edit their name and phone. Email, role and level are not editable here. */
 export function EditProfileScreen() {
   const t = useT();
+  const v = useValidationMessage();
   const member = useCurrentMember();
   const updateProfile = useUpdateProfile();
   const { control, handleSubmit, formState } = useForm<ProfileFormValues>({
@@ -70,7 +72,7 @@ export function EditProfileScreen() {
             onBlur={field.onBlur}
             autoComplete="name"
             textContentType="name"
-            error={formState.errors.fullName?.message}
+            error={v(formState.errors.fullName?.message)}
           />
         )}
       />
@@ -87,7 +89,7 @@ export function EditProfileScreen() {
             autoComplete="tel"
             textContentType="telephoneNumber"
             placeholder="+1 514 555 0100"
-            error={formState.errors.phone?.message}
+            error={v(formState.errors.phone?.message)}
             hint={t('phoneHint')}
           />
         )}
@@ -96,13 +98,13 @@ export function EditProfileScreen() {
       <Card>
         <View style={styles.readOnly}>
           <AppText variant="caption" tone="muted">
-            Email
+            {t('email')}
           </AppText>
           <AppText variant="bodyStrong">{member.email}</AppText>
         </View>
         <AppText variant="caption" tone="subtle">
-          To change your email address, please contact your coach.
-          {member.role === 'player' ? ' Your level is also assigned by your coach.' : ''}
+          {t('emailChangeNote')}
+          {member.role === 'player' ? t('levelAlsoCoach') : ''}
         </AppText>
       </Card>
 

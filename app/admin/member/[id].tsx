@@ -16,7 +16,7 @@ import { useCurrentMember } from '@/features/auth/AuthProvider';
 import { findLevel, useLevels } from '@/features/levels/hooks';
 import { useMember, useSetMemberActive, useSetMemberLevel } from '@/features/members/hooks';
 import { PlayerProfileCard } from '@/features/profile/PlayerProfileCard';
-import { splitRegistrations } from '@/features/registrations/api';
+import { attendanceSummary, splitRegistrations } from '@/features/registrations/api';
 import { useMemberRegistrations } from '@/features/registrations/hooks';
 import { RegistrationRow } from '@/features/registrations/RegistrationRow';
 import { useT } from '@/i18n';
@@ -54,7 +54,8 @@ export default function MemberDetailScreen() {
 
   const isSelf = member.id === me.id;
   const state = getAccountState(member);
-  const upcoming = splitRegistrations(registrations.data ?? []).upcoming;
+  const { upcoming, history } = splitRegistrations(registrations.data ?? []);
+  const attended = attendanceSummary(history);
   const levelOptions = (levels ?? [])
     .filter((level) => level.active)
     .map((level) => ({ value: level.id as number | null, label: level.name }));
@@ -215,6 +216,13 @@ export default function MemberDetailScreen() {
           />
         )}
       </Card>
+
+      {attended.marked > 0 ? (
+        <Card>
+          <SectionHeader title={t('attendance')} />
+          <AppText>{t('attendedSummary', attended)}</AppText>
+        </Card>
+      ) : null}
 
       <SectionHeader title={t('upcomingLessons')} count={upcoming.length} />
       {registrations.isPending ? (

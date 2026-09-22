@@ -2,7 +2,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import type { ComponentProps } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 
-import { colors, radius, shadow, spacing, touchTarget, typography } from '@/constants/theme';
+import {
+  colors,
+  radius,
+  shadow,
+  spacing,
+  stroke,
+  touchTarget,
+  typography,
+} from '@/constants/theme';
 
 import { AppText } from './AppText';
 
@@ -122,7 +130,7 @@ export function Button({
 const styles = StyleSheet.create({
   base: {
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: stroke,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,

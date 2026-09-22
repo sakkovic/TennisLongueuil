@@ -221,3 +221,33 @@ export function cancelRegistration(
     return rows[0].result;
   });
 }
+
+export interface WaitlistResult extends RpcResult {
+  waitlist_position: number | null;
+}
+
+export function joinWaitlist(
+  db: Client,
+  userId: string,
+  lessonId: string,
+): Promise<WaitlistResult> {
+  return asUser(db, userId, async (tx) => {
+    const { rows } = await tx.query<{ result: WaitlistResult }>(
+      'select public.join_waitlist($1) as result',
+      [lessonId],
+    );
+    return rows[0].result;
+  });
+}
+
+/** Each player's registration status for a lesson, keyed by player id. */
+export async function registrationStatuses(
+  db: Client,
+  lessonId: string,
+): Promise<Record<string, string>> {
+  const { rows } = await db.query<{ player_id: string; status: string }>(
+    `select player_id, status from public.lesson_registrations where lesson_id = $1`,
+    [lessonId],
+  );
+  return Object.fromEntries(rows.map((row) => [row.player_id, row.status]));
+}

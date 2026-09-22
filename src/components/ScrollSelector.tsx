@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { colors, radius, spacing } from '@/constants/theme';
+import { colors, radius, spacing, stroke } from '@/constants/theme';
 
 import { AppText } from './AppText';
 
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     height: 56,
     paddingHorizontal: spacing.xs,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: stroke,
     borderColor: colors.borderStrong,
     backgroundColor: colors.surfaceMuted,
   },
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.md,
     backgroundColor: colors.surfaceMuted,
-    borderWidth: 1,
+    borderWidth: stroke,
     borderColor: colors.border,
   },
   arrowPressed: { backgroundColor: colors.border },

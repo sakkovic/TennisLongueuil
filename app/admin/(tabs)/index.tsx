@@ -6,18 +6,15 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Banner } from '@/components/Banner';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { SectionHeader } from '@/components/SectionHeader';
-import { EmptyState, ErrorState, LoadingState } from '@/components/States';
-import { colors, radius, shadow, spacing } from '@/constants/theme';
+import { ErrorState } from '@/components/States';
+import { colors, radius, shadow, spacing, stroke } from '@/constants/theme';
 import { useCurrentMember } from '@/features/auth/AuthProvider';
 import { slotsFromLessons } from '@/features/home/posterSessions';
 import { SessionPoster } from '@/features/home/SessionPoster';
 import { useLessonsRealtime, useUpcomingLessons } from '@/features/lessons/hooks';
-import { LessonCard } from '@/features/lessons/LessonCard';
 import { useMembers } from '@/features/members/hooks';
 import { useT } from '@/i18n';
 import { getAccountState } from '@/types/models';
-import { getGreeting } from '@/utils/date';
 import { firstName } from '@/utils/names';
 
 export default function AdminHomeScreen() {
@@ -28,7 +25,6 @@ export default function AdminHomeScreen() {
   useLessonsRealtime();
 
   const scheduled = (lessons.data ?? []).filter((lesson) => lesson.status === 'scheduled');
-  const nextLesson = scheduled[0];
   const activeMembers = (members.data ?? []).filter((m) => m.active && m.role === 'player').length;
   const pendingCount = (members.data ?? []).filter((m) => getAccountState(m) === 'pending').length;
 
@@ -39,10 +35,6 @@ export default function AdminHomeScreen() {
 
   return (
     <ScreenContainer edges={['top']} onRefresh={refresh} refreshing={lessons.isRefetching}>
-      <AppText variant="overline" tone="muted">
-        {`${getGreeting()}, ${firstName(member.full_name)}`}
-      </AppText>
-
       {pendingCount > 0 ? (
         <Pressable
           onPress={() => router.navigate('/admin/members')}
@@ -60,8 +52,8 @@ export default function AdminHomeScreen() {
         </Pressable>
       ) : null}
 
-      {/* The same landing page players see, with the coach's main action. */}
       <SessionPoster
+        playerName={firstName(member.full_name)}
         slots={slotsFromLessons(lessons.data ?? [], undefined)}
         loading={lessons.isPending}
         onPressSlot={(id) => router.push({ pathname: '/admin/lesson/[id]', params: { id } })}
@@ -71,6 +63,8 @@ export default function AdminHomeScreen() {
           onPress: () => router.push('/admin/lesson/new'),
         }}
       />
+
+      {lessons.isError ? <ErrorState error={lessons.error} onRetry={refresh} /> : null}
 
       <View style={styles.stats}>
         <StatTile
@@ -86,26 +80,6 @@ export default function AdminHomeScreen() {
           onPress={() => router.navigate('/admin/members')}
         />
       </View>
-
-      <SectionHeader title={t('nextLesson')} />
-      {lessons.isPending ? (
-        <LoadingState />
-      ) : lessons.isError ? (
-        <ErrorState error={lessons.error} onRetry={refresh} />
-      ) : nextLesson ? (
-        <LessonCard
-          lesson={nextLesson}
-          onPress={() =>
-            router.push({ pathname: '/admin/lesson/[id]', params: { id: nextLesson.id } })
-          }
-        />
-      ) : (
-        <EmptyState
-          icon="calendar-outline"
-          title={t('noUpcomingTitleShort')}
-          message={t('noUpcomingCoach')}
-        />
-      )}
     </ScreenContainer>
   );
 }
@@ -142,11 +116,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: stroke,
     borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    gap: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
     ...shadow.card,
   },
   tileValue: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

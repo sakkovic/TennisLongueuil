@@ -81,7 +81,7 @@ describe('findConflictingInputs', () => {
 
   it('explains a partial series collision', () => {
     const conflicts = [input('2026-09-22T22:00:00.000Z', '2026-09-22T23:30:00.000Z')];
-    expect(conflictMessage(conflicts, 8)).toContain('skip that week');
+    expect(conflictMessage(conflicts, 8)).toContain('That week will be skipped');
     expect(conflictMessage(conflicts, 1)).toContain('already has a lesson');
   });
 });

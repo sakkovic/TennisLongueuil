@@ -199,6 +199,52 @@ export function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+/**
+ * Monday 00:00 of the week that contains `date`. Weeks start on Monday
+ * (ISO / Québec), so Sunday belongs to the week that began the day before.
+ */
+export function startOfWeek(date: Date): Date {
+  const day = date.getDay();
+  const daysFromMonday = day === 0 ? 6 : day - 1;
+  return startOfDay(new Date(date.getFullYear(), date.getMonth(), date.getDate() - daysFromMonday));
+}
+
+/** Sunday of the same Monday-based week. */
+export function endOfWeek(date: Date): Date {
+  const start = startOfWeek(date);
+  return startOfDay(new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6));
+}
+
+/** Stable key for a Monday-based week, e.g. "2026-09-21". */
+export function toWeekKey(date: DateInput): string {
+  return toDateKey(startOfWeek(toDate(date)));
+}
+
+/**
+ * "Sep 21–27" / "Sep 28 – Oct 4" / "21–27 sept." — the Monday–Sunday span
+ * of the week that contains `value`.
+ */
+export function formatWeekRange(value: DateInput, now: Date = new Date()): string {
+  const start = startOfWeek(toDate(value));
+  const end = endOfWeek(start);
+  const showYear =
+    start.getFullYear() !== now.getFullYear() || end.getFullYear() !== now.getFullYear();
+  const sameMonth =
+    start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+
+  if (dateLocale === 'fr') {
+    const year = showYear ? ` ${end.getFullYear()}` : '';
+    if (sameMonth) return `${start.getDate()}–${end.getDate()} ${shortMonth(start)}${year}`;
+    const startYear = start.getFullYear() !== end.getFullYear() ? ` ${start.getFullYear()}` : '';
+    return `${start.getDate()} ${shortMonth(start)}${startYear} – ${end.getDate()} ${shortMonth(end)}${year}`;
+  }
+
+  const year = showYear ? `, ${end.getFullYear()}` : '';
+  if (sameMonth) return `${shortMonth(start)} ${start.getDate()}–${end.getDate()}${year}`;
+  const startYear = start.getFullYear() !== end.getFullYear() ? `, ${start.getFullYear()}` : '';
+  return `${shortMonth(start)} ${start.getDate()}${startYear} – ${shortMonth(end)} ${end.getDate()}${year}`;
+}
+
 /** Minutes since local midnight, e.g. 6:00 PM → 1080. */
 export function minutesOfDay(date: Date): number {
   return date.getHours() * 60 + date.getMinutes();

@@ -3,57 +3,54 @@ import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 /**
  * SaKKa.Tennis design tokens.
  *
- * Dark, premium and athletic: the near-black and bright aqua are sampled from
- * the brand artwork (assets/sakkatennis_*.png), so logo images sit seamlessly
- * on the app background. Use these tokens everywhere; never hard-code colours.
+ * Soft teal on a mist background so white cards and 1px borders stay visible
+ * without neon contrast. Use these tokens everywhere; never hard-code colours.
  */
 export const brand = {
-  aqua: '#1ECFCB',
-  aquaDeep: '#00C4C4',
-  aquaLight: '#6CDFDD',
-  ink: '#04080B',
+  aqua: '#14B4B0',
+  aquaDeep: '#0E9A97',
+  aquaLight: '#5DCECB',
+  ink: '#122022',
 } as const;
 
 export const colors = {
   primary: brand.aqua,
-  primaryPressed: '#17B5B2',
-  /** Aqua-tinted dark surface for highlighted areas. */
-  primarySoft: '#0B2B2D',
+  primaryPressed: brand.aquaDeep,
+  /** Soft aqua wash for highlighted areas. */
+  primarySoft: '#D9F2F1',
   /** Text and icons placed on aqua. */
-  onPrimary: '#021416',
+  onPrimary: '#042221',
 
-  accent: brand.aquaLight,
-  accentPressed: '#56D2CF',
-  onAccent: '#021416',
+  accent: '#0D6F6C',
+  accentPressed: '#0A5856',
+  onAccent: '#042221',
 
-  background: brand.ink,
-  surface: '#0B1417',
-  surfaceMuted: '#111E22',
-  surfacePressed: '#16272C',
-  tabBar: '#070E11',
-  border: '#1A2B30',
-  borderStrong: '#28434A',
+  background: '#F2F5F5',
+  surface: '#FFFFFF',
+  surfaceMuted: '#DEE7E7',
+  surfacePressed: '#D0DCDC',
+  tabBar: '#FFFFFF',
+  border: '#6F8A8A',
+  borderStrong: '#4D6868',
 
-  text: '#E8F6F6',
-  textMuted: '#9DB4B6',
-  textSubtle: '#6F898C',
+  text: brand.ink,
+  textMuted: '#3F5556',
+  textSubtle: '#6B8081',
 
-  success: '#4ADE9A',
-  successSoft: '#0E2A20',
-  warning: '#F4B860',
-  warningSoft: '#2C2210',
-  danger: '#FF7A7A',
-  dangerSoft: '#321417',
-  dangerBorder: '#5B2A2F',
-  info: '#7FB8FF',
-  infoSoft: '#11223A',
+  success: '#1A9A64',
+  successSoft: '#E6F7EF',
+  warning: '#C07A12',
+  warningSoft: '#FFF4E0',
+  danger: '#D64545',
+  dangerSoft: '#FDECEC',
+  dangerBorder: '#F3C4C4',
+  info: '#2B6CB0',
+  infoSoft: '#E8F1FC',
 
-  overlay: 'rgba(0, 0, 0, 0.65)',
-  /** Faint aqua lines of the court drawing on the home poster. */
-  courtLine: 'rgba(30, 207, 203, 0.22)',
-  /** Soft aqua halo behind the emblem. */
-  glow: 'rgba(30, 207, 203, 0.10)',
-  glowFaint: 'rgba(30, 207, 203, 0.05)',
+  overlay: 'rgba(11, 26, 28, 0.4)',
+  courtLine: 'rgba(20, 180, 176, 0.38)',
+  glow: 'rgba(20, 180, 176, 0.16)',
+  glowFaint: 'rgba(20, 180, 176, 0.08)',
 } as const;
 
 export const spacing = {
@@ -105,15 +102,30 @@ export const typography = {
   },
 } satisfies Record<string, TextStyle>;
 
+/** Visible box outline — hairline disappears on white and on retina screens. */
+export const stroke = 1;
+
 export const shadow = {
-  /** On a dark UI, depth comes from borders and surfaces; cards stay flat. */
-  card: {} as ViewStyle,
-  /** Soft aqua glow for the main call to action (iOS; Android shows a flat button). */
+  card: Platform.select<ViewStyle>({
+    ios: {
+      shadowColor: '#122022',
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+    },
+    android: { elevation: 2 },
+    default: {
+      shadowColor: '#122022',
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+    },
+  }),
   glow: Platform.select<ViewStyle>({
     ios: {
       shadowColor: brand.aqua,
-      shadowOpacity: 0.35,
-      shadowRadius: 14,
+      shadowOpacity: 0.28,
+      shadowRadius: 12,
       shadowOffset: { width: 0, height: 4 },
     },
     default: {},
@@ -122,10 +134,10 @@ export const shadow = {
 
 /** Level badge colours, chosen by level rank so new levels need no code change. */
 const levelPalette = [
-  { background: '#0B2B2D', text: brand.aquaLight },
-  { background: '#11223A', text: '#8FC1FF' },
-  { background: '#221B3A', text: '#BBA6FF' },
-  { background: '#35230F', text: '#FFB56B' },
+  { background: '#E6F8F8', text: '#0A6E6C' },
+  { background: '#E8F1FF', text: '#2B5EA7' },
+  { background: '#F1ECFF', text: '#5B4AA8' },
+  { background: '#FFF1E4', text: '#A45B12' },
 ] as const;
 
 export function levelColors(rank: number | null | undefined) {

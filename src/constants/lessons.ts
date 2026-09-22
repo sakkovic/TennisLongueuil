@@ -29,6 +29,8 @@ export const LESSON_DURATION_CHOICES = [45, 60, 90, 120, 180];
  */
 export const REGISTRATION_LEAD_MINUTES = 4 * 60;
 export const CANCELLATION_LEAD_MINUTES = 24 * 60;
+/** The coach can take attendance from this long before the start. */
+export const ATTENDANCE_LEAD_MINUTES = 30;
 
 /** How long before the start registration closes (never later than the 4-hour rule). */
 export const DEFAULT_DEADLINE_OFFSET_MINUTES = REGISTRATION_LEAD_MINUTES;

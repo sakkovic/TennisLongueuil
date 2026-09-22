@@ -10,10 +10,13 @@ import {
   formatShortDate,
   formatTime,
   formatTimeRange,
+  formatWeekRange,
   getGreeting,
   minutesOfDay,
   setDateLocale,
+  startOfWeek,
   toDateKey,
+  toWeekKey,
 } from '../date';
 
 // Tests run in America/Toronto (see jest.globalSetup.js).
@@ -95,6 +98,21 @@ describe('date formatting', () => {
     expect(getGreeting(new Date(2026, 8, 21, 8))).toBe('Good morning');
     expect(getGreeting(new Date(2026, 8, 21, 14))).toBe('Good afternoon');
     expect(getGreeting(new Date(2026, 8, 21, 20))).toBe('Good evening');
+  });
+
+  it('starts weeks on Monday and keeps Sunday in the previous week', () => {
+    expect(toDateKey(startOfWeek(new Date(2026, 8, 21, 18, 0)))).toBe('2026-09-21');
+    expect(toDateKey(startOfWeek(new Date(2026, 8, 23, 9, 0)))).toBe('2026-09-21');
+    expect(toDateKey(startOfWeek(new Date(2026, 8, 20, 18, 0)))).toBe('2026-09-14');
+    expect(toWeekKey(new Date(2026, 8, 27, 23, 0))).toBe('2026-09-21');
+  });
+
+  it('formats a Monday–Sunday week span', () => {
+    expect(formatWeekRange(new Date(2026, 8, 22), now)).toBe('Sep 21–27');
+    expect(formatWeekRange(new Date(2026, 8, 28), now)).toBe('Sep 28 – Oct 4');
+    setDateLocale('fr');
+    expect(formatWeekRange(new Date(2026, 8, 22), now)).toBe('21–27 sept.');
+    expect(formatWeekRange(new Date(2026, 8, 28), now)).toBe('28 sept. – 4 oct.');
   });
 
   it('formats French dates and times', () => {

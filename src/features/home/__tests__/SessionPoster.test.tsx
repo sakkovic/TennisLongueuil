@@ -16,16 +16,30 @@ describe('SessionPoster', () => {
       />,
     );
 
+    expect(screen.getByText("Let's improve your tennis game at")).toBeTruthy();
     expect(screen.getByText('SaKKa.Tennis')).toBeTruthy();
-    expect(screen.getByText('120-minute sessions')).toBeTruthy();
-    expect(screen.getByText('Complexe Sportif Longueuil')).toBeTruthy();
-    expect(screen.getByText('120 min · Coach CP1 · 4 players per court')).toBeTruthy();
     expect(screen.getByText('6:00 PM')).toBeTruthy();
     expect(screen.getByText('3 spots left')).toBeTruthy();
     expect(screen.getByText('Full')).toBeTruthy();
     expect(screen.getByText('$45')).toBeTruthy();
-    expect(screen.getByText('+ court fees shared')).toBeTruthy();
-    expect(screen.getByText('Coach · Sakka Mohamed Anis · CP1')).toBeTruthy();
+    expect(screen.getByText('Court fees split 4 ways')).toBeTruthy();
+    expect(
+      screen.getByText('Coach · Sakka Mohamed Anis · CP1 · Complexe Sportif Longueuil'),
+    ).toBeTruthy();
+  });
+
+  it('greets a signed-in member under the court', async () => {
+    await render(
+      <SessionPoster
+        playerName="Sakka"
+        slots={[]}
+        primaryAction={{ label: 'Create a lesson', onPress: jest.fn() }}
+      />,
+    );
+
+    expect(screen.getByText('Hello Sakka!')).toBeTruthy();
+    expect(screen.getByText("Let's improve your tennis game at")).toBeTruthy();
+    expect(screen.getByText('SaKKa.Tennis')).toBeTruthy();
   });
 
   it('runs the main action and opens a tapped session', async () => {

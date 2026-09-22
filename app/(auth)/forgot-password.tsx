@@ -10,6 +10,7 @@ import { ScreenContainer } from '@/components/ScreenContainer';
 import { TextField } from '@/components/TextField';
 import { spacing } from '@/constants/theme';
 import { requestPasswordReset, verifyResetCode } from '@/features/auth/api';
+import { useT } from '@/i18n';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 const emailSchema = z.email();
@@ -21,6 +22,7 @@ const codeSchema = z.string().regex(/^\d{6,10}$/);
  * instead (custom template), it can be typed here.
  */
 export default function ForgotPasswordScreen() {
+  const t = useT();
   const [step, setStep] = useState<'email' | 'sent'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -30,7 +32,7 @@ export default function ForgotPasswordScreen() {
   const sendEmail = async () => {
     setError(null);
     if (!emailSchema.safeParse(email.trim()).success) {
-      setError('Please enter a valid email address.');
+      setError(t('invalidEmail'));
       return;
     }
     setBusy(true);
@@ -48,7 +50,7 @@ export default function ForgotPasswordScreen() {
   const verifyCode = async () => {
     setError(null);
     if (!codeSchema.safeParse(code.trim()).success) {
-      setError('Enter the code from the email (digits only).');
+      setError(t('enterResetCode'));
       return;
     }
     setBusy(true);
@@ -65,12 +67,10 @@ export default function ForgotPasswordScreen() {
   if (step === 'email') {
     return (
       <ScreenContainer keyboard edges={['bottom']}>
-        <AppText variant="title">Forgot your password?</AppText>
-        <AppText tone="muted">
-          Enter your email and we&apos;ll send you a link to choose a new password.
-        </AppText>
+        <AppText variant="title">{t('forgotPassword')}</AppText>
+        <AppText tone="muted">{t('forgotPasswordHint')}</AppText>
         <TextField
-          label="Email"
+          label={t('email')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -82,29 +82,23 @@ export default function ForgotPasswordScreen() {
           onSubmitEditing={sendEmail}
         />
         {error ? <Banner tone="danger" message={error} /> : null}
-        <Button label="Send reset email" onPress={sendEmail} loading={busy} />
+        <Button label={t('sendResetEmail')} onPress={sendEmail} loading={busy} />
       </ScreenContainer>
     );
   }
 
   return (
     <ScreenContainer keyboard edges={['bottom']}>
-      <AppText variant="title">Check your email</AppText>
-      <Banner
-        tone="info"
-        message={`If an account exists for ${email.trim()}, a reset email is on its way.`}
-      />
-      <AppText tone="muted">
-        Open the email on this phone and tap the reset link. The app will open so you can choose a
-        new password.
-      </AppText>
-      <Button label="Send the email again" variant="secondary" onPress={sendEmail} loading={busy} />
+      <AppText variant="title">{t('checkYourEmail')}</AppText>
+      <Banner tone="info" message={t('resetEmailSent', { email: email.trim() })} />
+      <AppText tone="muted">{t('resetEmailHint')}</AppText>
+      <Button label={t('sendEmailAgain')} variant="secondary" onPress={sendEmail} loading={busy} />
 
       <Card>
         <View style={styles.codeSection}>
-          <AppText variant="label">Your email has a code instead?</AppText>
+          <AppText variant="label">{t('codeInstead')}</AppText>
           <TextField
-            label="Reset code"
+            label={t('resetCode')}
             value={code}
             onChangeText={(value) => setCode(value.replace(/\D/g, ''))}
             keyboardType="number-pad"
@@ -115,13 +109,18 @@ export default function ForgotPasswordScreen() {
             onSubmitEditing={verifyCode}
             style={styles.code}
           />
-          <Button label="Verify code" variant="secondary" onPress={verifyCode} disabled={busy} />
+          <Button
+            label={t('verifyCode')}
+            variant="secondary"
+            onPress={verifyCode}
+            disabled={busy}
+          />
         </View>
       </Card>
 
       {error ? <Banner tone="danger" message={error} /> : null}
       <Button
-        label="Use a different email"
+        label={t('useDifferentEmail')}
         variant="ghost"
         disabled={busy}
         onPress={() => {

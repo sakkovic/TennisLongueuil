@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 
 import { colors } from '@/constants/theme';
+import { useT } from '@/i18n';
 import { getAvatarUrl } from '@/lib/supabase';
 
 import { AppText } from './AppText';
@@ -32,6 +33,7 @@ function colorFor(name: string): string {
 }
 
 export function PlayerAvatar({ name, avatarPath, version, size = 40 }: PlayerAvatarProps) {
+  const t = useT();
   const uri = getAvatarUrl(avatarPath, version);
   const dimension = { width: size, height: size, borderRadius: size / 2 };
 
@@ -43,7 +45,7 @@ export function PlayerAvatar({ name, avatarPath, version, size = 40 }: PlayerAva
         contentFit="cover"
         transition={150}
         cachePolicy="memory-disk"
-        accessibilityLabel={`${name}'s photo`}
+        accessibilityLabel={t('photoOf', { name })}
       />
     );
   }

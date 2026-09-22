@@ -9,6 +9,52 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      lesson_attendance: {
+        Row: {
+          marked_at: string
+          marked_by: string | null
+          player_id: string
+          registration_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+        }
+        Insert: {
+          marked_at?: string
+          marked_by?: string | null
+          player_id: string
+          registration_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+        }
+        Update: {
+          marked_at?: string
+          marked_by?: string | null
+          player_id?: string
+          registration_id?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_attendance_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_attendance_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_attendance_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: true
+            referencedRelation: "lesson_registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_registrations: {
         Row: {
           cancellation_reason: string | null
@@ -18,6 +64,7 @@ export type Database = {
           joined_at: string
           lesson_id: string
           player_id: string
+          promoted_at: string | null
           status: Database["public"]["Enums"]["registration_status"]
           updated_at: string
         }
@@ -29,6 +76,7 @@ export type Database = {
           joined_at?: string
           lesson_id: string
           player_id: string
+          promoted_at?: string | null
           status?: Database["public"]["Enums"]["registration_status"]
           updated_at?: string
         }
@@ -40,6 +88,7 @@ export type Database = {
           joined_at?: string
           lesson_id?: string
           player_id?: string
+          promoted_at?: string | null
           status?: Database["public"]["Enums"]["registration_status"]
           updated_at?: string
         }
@@ -74,10 +123,12 @@ export type Database = {
           registered_count: number
           registration_deadline: string | null
           registration_open: boolean
+          series_id: string | null
           start_time: string
           status: Database["public"]["Enums"]["lesson_status"]
           title: string
           updated_at: string
+          waitlist_count: number
         }
         Insert: {
           capacity?: number
@@ -92,10 +143,12 @@ export type Database = {
           registered_count?: number
           registration_deadline?: string | null
           registration_open?: boolean
+          series_id?: string | null
           start_time: string
           status?: Database["public"]["Enums"]["lesson_status"]
           title?: string
           updated_at?: string
+          waitlist_count?: number
         }
         Update: {
           capacity?: number
@@ -110,10 +163,12 @@ export type Database = {
           registered_count?: number
           registration_deadline?: string | null
           registration_open?: boolean
+          series_id?: string | null
           start_time?: string
           status?: Database["public"]["Enums"]["lesson_status"]
           title?: string
           updated_at?: string
+          waitlist_count?: number
         }
         Relationships: [
           {
@@ -218,6 +273,13 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_set_attendance: {
+        Args: {
+          p_registration_id: string
+          p_status?: Database["public"]["Enums"]["attendance_status"]
+        }
+        Returns: Json
+      }
       admin_set_member_active: {
         Args: { p_active: boolean; p_member_id: string }
         Returns: Json
@@ -226,6 +288,7 @@ export type Database = {
         Args: { p_member_id: string; p_player_level_id: number }
         Returns: undefined
       }
+      admin_update_lessons: { Args: { p_lessons: Json }; Returns: number }
       cancel_registration: {
         Args: { p_lesson_id: string; p_reason?: string }
         Returns: Json
@@ -241,6 +304,7 @@ export type Database = {
         }
       }
       join_lesson: { Args: { p_lesson_id: string }; Returns: Json }
+      join_waitlist: { Args: { p_lesson_id: string }; Returns: Json }
       upcoming_sessions: {
         Args: { p_limit?: number }
         Returns: {
@@ -255,8 +319,9 @@ export type Database = {
       }
     }
     Enums: {
+      attendance_status: "present" | "absent"
       lesson_status: "scheduled" | "cancelled" | "completed"
-      registration_status: "joined" | "cancelled"
+      registration_status: "joined" | "cancelled" | "waitlisted"
       user_role: "player" | "admin"
     }
     CompositeTypes: {
@@ -399,8 +464,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      attendance_status: ["present", "absent"],
       lesson_status: ["scheduled", "cancelled", "completed"],
-      registration_status: ["joined", "cancelled"],
+      registration_status: ["joined", "cancelled", "waitlisted"],
       user_role: ["player", "admin"],
     },
   },

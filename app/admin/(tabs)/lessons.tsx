@@ -1,80 +1,89 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { SegmentedControl } from '@/components/SegmentedControl';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
-import { useLessonsRealtime, usePastLessons, useUpcomingLessons } from '@/features/lessons/hooks';
+import { spacing } from '@/constants/theme';
+import { useLessonsRealtime, useUpcomingLessons } from '@/features/lessons/hooks';
 import { LessonCard } from '@/features/lessons/LessonCard';
+import {
+  liveUpcomingLessons,
+  resolveWeekKey,
+  weeksFromItems,
+} from '@/features/lessons/lessonWeeks';
+import { WeekSelector } from '@/features/lessons/WeekSelector';
 import { useT } from '@/i18n';
-
-type Tab = 'upcoming' | 'past';
 
 export default function AdminLessonsScreen() {
   const t = useT();
-  const [tab, setTab] = useState<Tab>('upcoming');
+  const [weekKey, setWeekKey] = useState<string | null>(null);
   const upcoming = useUpcomingLessons();
-  const past = usePastLessons(tab === 'past');
   useLessonsRealtime();
 
-  const query = tab === 'upcoming' ? upcoming : past;
+  const live = useMemo(() => liveUpcomingLessons(upcoming.data), [upcoming.data]);
+  const weeks = useMemo(() => weeksFromItems(live, (lesson) => lesson.start_time), [live]);
+  const selectedWeek = resolveWeekKey(weeks, weekKey, 'soonest');
+  const visible = weeks.find((week) => week.key === selectedWeek)?.items ?? [];
 
   return (
     <ScreenContainer
       edges={['top']}
-      onRefresh={() => void query.refetch()}
-      refreshing={query.isRefetching}
+      onRefresh={() => void upcoming.refetch()}
+      refreshing={upcoming.isRefetching}
     >
       <ScreenHeader
         title={t('tabLessons')}
         action={
-          <Button
-            label={t('newLabel')}
-            icon="add"
-            size="md"
-            fullWidth={false}
-            onPress={() => router.push('/admin/lesson/new')}
-          />
+          <View style={styles.actions}>
+            <Button
+              label={t('history')}
+              variant="secondary"
+              size="md"
+              fullWidth={false}
+              onPress={() => router.push('/admin/history')}
+            />
+            <Button
+              label={t('newLabel')}
+              icon="add"
+              size="md"
+              fullWidth={false}
+              onPress={() => router.push('/admin/lesson/new')}
+            />
+          </View>
         }
       />
-      <SegmentedControl
-        options={[
-          { value: 'upcoming', label: t('upcoming') },
-          { value: 'past', label: t('past') },
-        ]}
-        value={tab}
-        onChange={setTab}
-      />
+      {weeks.length > 1 && selectedWeek ? (
+        <WeekSelector weeks={weeks} value={selectedWeek} onChange={setWeekKey} />
+      ) : null}
 
-      {query.isPending ? (
+      {upcoming.isPending ? (
         <LoadingState />
-      ) : query.isError ? (
+      ) : upcoming.isError ? (
         <ErrorState
-          error={query.error}
-          onRetry={() => void query.refetch()}
-          retrying={query.isRefetching}
+          error={upcoming.error}
+          onRetry={() => void upcoming.refetch()}
+          retrying={upcoming.isRefetching}
         />
-      ) : query.data.length === 0 ? (
-        tab === 'upcoming' ? (
-          <EmptyState
-            icon="calendar-outline"
-            title={t('noUpcomingTitleShort')}
-            message={t('noUpcomingCoachCreate')}
-            action={
-              <Button
-                label={t('createLesson')}
-                onPress={() => router.push('/admin/lesson/new')}
-                fullWidth={false}
-              />
-            }
-          />
-        ) : (
-          <EmptyState icon="time-outline" title={t('noPastLessons')} />
-        )
+      ) : live.length === 0 ? (
+        <EmptyState
+          icon="calendar-outline"
+          title={t('noUpcomingTitleShort')}
+          message={t('noUpcomingCoachCreate')}
+          action={
+            <Button
+              label={t('createLesson')}
+              onPress={() => router.push('/admin/lesson/new')}
+              fullWidth={false}
+            />
+          }
+        />
+      ) : visible.length === 0 ? (
+        <EmptyState icon="calendar-outline" title={t('noLessonsThisWeek')} />
       ) : (
-        query.data.map((lesson) => (
+        visible.map((lesson) => (
           <LessonCard
             key={lesson.id}
             lesson={lesson}
@@ -87,3 +96,7 @@ export default function AdminLessonsScreen() {
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+});

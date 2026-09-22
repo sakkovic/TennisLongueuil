@@ -42,7 +42,7 @@ app/                         Expo Router routes (screens only)
 ├── reset-password.tsx       "Choose a new password" after a reset link or code
 ├── (auth)/                  welcome (flyer landing), login, sign-up, forgot-password
 ├── (player)/                Player app
-│   ├── (tabs)/              Home · My Lessons · Profile
+│   ├── (tabs)/              Home · Lessons · My Lessons · Profile
 │   ├── lesson/[id].tsx      Lesson details (join, cancel, participants)
 │   └── edit-profile.tsx, change-password.tsx
 └── admin/                   Coach app (URL prefix /admin)
@@ -251,12 +251,30 @@ Local native builds are also possible: `npx expo run:android` (Android Studio) a
 ### Lessons and capacity
 
 - Default title "Tennis Lesson", default location **Complexe Sportif Longueuil** (stored per lesson, so other locations are possible), default length 120 minutes.
-- **Weekly series:** the coach can repeat a lesson every week (same weekday, time and courts) for 2–26 weeks. The series is created in one insert (all or nothing), and each week is an independent lesson that can be edited or cancelled on its own.
+- **Weekly series:** the coach can repeat a lesson every week (same weekday, time and courts) for 2–26 weeks. The series is created in one insert (all or nothing) and its lessons share a `series_id`. Each week is still its own lesson, but when the coach edits or cancels one, the app asks: **this lesson only**, or **this and the following ones**. A series edit keeps the same wall-clock time every week (daylight saving included) and is saved by `admin_update_lessons` in a single statement, so it applies to every lesson or to none.
+- **No double booking:** when a new lesson (or some weeks of a series) would land on a time and place that is already booked, those weeks are skipped by default; "Create anyway" is the exception.
 - **Registration deadline:** registration closes 4 hours before the start, or earlier if the coach chooses (6 h, 12 h, 1–3 days). `join_lesson` enforces this even for lessons without an explicit deadline.
 - `capacity` is a generated column: **`court_count × 4`**. The app only displays it.
 - `join_lesson(p_lesson_id)` runs entirely in PostgreSQL. It identifies the player with `auth.uid()`, checks the account, lesson status, start time, registration open/deadline and duplicates, then **locks the lesson row** (`FOR NO KEY UPDATE`). While the lock is held it counts active registrations and inserts or reactivates the registration. Concurrent joins queue on the lock, so exactly one player gets the last spot. The others receive `LESSON_FULL`, which the app shows as "Sorry, this lesson has just become full."
 - As a second safety net, `lessons.registered_count` is maintained by a trigger and protected by a `CHECK (registered_count <= court_count * 4)`. Even a write that bypassed `join_lesson` could not overbook a lesson. The same check stops the coach from reducing courts below the current registrations.
 - The app never shows a registration optimistically. The **Join** button shows a spinner and is disabled until the database answers.
+
+### Waitlist
+
+- When a lesson is full, players can **join the waitlist** (`join_waitlist`). Everyone sees who is waiting and in which order; the app shows each player their place ("You're #2 in line").
+- When a spot opens, the **first player in line is moved in automatically**, in the same transaction and under the same lesson lock as `join_lesson`, so capacity still holds under concurrency. A spot opens when a player cancels, when the coach deactivates a registered player, or when the coach adds courts or reopens registration. Promotion happens in database triggers, so every path is covered.
+- Promotion stops when registration closes (4 hours before, or the lesson's deadline): nobody is moved in at the last minute. Since cancellations close 24 hours before, a promoted player normally still has time to cancel.
+- A promoted player sees "A spot opened, you're in!" on their home screen and lesson, and the app schedules their reminder. Leaving the waitlist is possible until the lesson starts (it frees no spot).
+- Deactivating an account also takes the player off every waitlist.
+
+### Attendance
+
+- From 30 minutes before a lesson, the coach's lesson screen turns the player list into a roll call: **Present / Absent** for each registered player (tap again to clear). `admin_set_attendance` checks the coach role, the timing and that the player was registered.
+- Attendance lives in its own table (`lesson_attendance`) so it stays private: only the coach and the player concerned can read it. Players see "Present" or "Absent" in their history; the coach sees "3/4 present" in History and "Attended 8 of 10 lessons" on each member.
+
+### Sharing
+
+- Any lesson can be **shared** (share icon on the lesson screen): the message has the date, place, spots left and a link that opens the lesson in the app.
 
 ### Cancellations
 
@@ -267,7 +285,11 @@ Local native builds are also possible: `npx expo run:android` (Android Studio) a
 
 ### Realtime
 
-Every join or cancel updates the lesson row (`registered_count`). Screens showing lessons subscribe to the `lessons` table (one row on the details screen) **only while the screen is focused**, and unsubscribe on blur or unmount. Counts, participant lists and full/available state then refresh live. Realtime applies RLS, and the lesson row contains no private data.
+Every join, cancel or waitlist change updates the lesson row (`registered_count`, `waitlist_count`). Screens showing lessons subscribe to the `lessons` table (one row on the details screen) **only while the screen is focused**, and unsubscribe on blur or unmount. Counts, participant lists and full/available state then refresh live. Realtime applies RLS, and the lesson row contains no private data.
+
+### Languages
+
+The app is **French first**: it starts in French unless the phone is set to English, and members can switch in their profile. Every screen, validation message and server error is available in both languages (`src/i18n/strings.ts`, `src/i18n/validation.ts`, `src/utils/errors.ts`).
 
 ### Dates and times
 
@@ -279,16 +301,18 @@ Times are stored as `timestamptz` (absolute instants) and displayed in the phone
 
 RLS is enabled on every table. The app's UI guards are only for convenience; **every rule below is enforced by PostgreSQL**. Anonymous users have no access to anything.
 
-| Table / object                       | Players                                                                                                                                                                                                | Coach (admin)                                                                                    |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `player_levels`                      | Read                                                                                                                                                                                                   | Read (levels are managed by migrations)                                                          |
-| `profiles`                           | Read public identity columns (name, photo, level, role) of members. Read own full profile via `get_my_profile()`. Update **only** own `full_name`, `phone`, `avatar_path` (column-level grants + RLS). | Everything above, plus contact details via `admin_list_members()`. Level and activation via RPC. |
-| `lessons`                            | Read (active members only)                                                                                                                                                                             | Read, create, update (incl. cancel). No delete for anyone.                                       |
-| `lesson_registrations`               | Read own rows (incl. own reason) and other players' **active** rows only. No direct writes.                                                                                                            | Read all rows, including cancellation reasons.                                                   |
-| `join_lesson`, `cancel_registration` | Only for themselves (`auth.uid()`); no user id parameter exists                                                                                                                                        | Same                                                                                             |
-| `admin_*` functions                  | Rejected with `NOT_AUTHORIZED`                                                                                                                                                                         | Allowed (cannot deactivate own account)                                                          |
-| `upcoming_sessions()`                | Anyone, even signed out: the next 3–6 scheduled sessions (time, location, capacity, spots taken). No names or registrations. Powers the welcome flyer.                                                 | Same                                                                                             |
-| `avatars` bucket                     | Write only `avatars/<own user id>/profile.jpg` (JPEG/PNG/WebP, max 2 MB). Photos are readable by URL.                                                                                                  | Same (no access to other members' files)                                                         |
+| Table / object                                        | Players                                                                                                                                                                                                | Coach (admin)                                                                                    |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `player_levels`                                       | Read                                                                                                                                                                                                   | Read (levels are managed by migrations)                                                          |
+| `profiles`                                            | Read public identity columns (name, photo, level, role) of members. Read own full profile via `get_my_profile()`. Update **only** own `full_name`, `phone`, `avatar_path` (column-level grants + RLS). | Everything above, plus contact details via `admin_list_members()`. Level and activation via RPC. |
+| `lessons`                                             | Read (active members only)                                                                                                                                                                             | Read, create, update (incl. cancel). No delete for anyone.                                       |
+| `lesson_registrations`                                | Read own rows (incl. own reason) and other players' **joined and waitlisted** rows only. No direct writes.                                                                                             | Read all rows, including cancellation reasons.                                                   |
+| `lesson_attendance`                                   | Read own attendance only. No direct writes.                                                                                                                                                            | Read all; write through `admin_set_attendance()`.                                                |
+| `join_lesson`, `join_waitlist`, `cancel_registration` | Only for themselves (`auth.uid()`); no user id parameter exists                                                                                                                                        | Same                                                                                             |
+| `admin_update_lessons()`                              | Rejected with `NOT_AUTHORIZED`                                                                                                                                                                         | Saves several lessons at once (series edit). Runs with the caller's own RLS and column grants.   |
+| `admin_*` functions                                   | Rejected with `NOT_AUTHORIZED`                                                                                                                                                                         | Allowed (cannot deactivate own account)                                                          |
+| `upcoming_sessions()`                                 | Anyone, even signed out: the next 3–6 scheduled sessions (time, location, capacity, spots taken). No names or registrations. Powers the welcome flyer.                                                 | Same                                                                                             |
+| `avatars` bucket                                      | Write only `avatars/<own user id>/profile.jpg` (JPEG/PNG/WebP, max 2 MB). Photos are readable by URL.                                                                                                  | Same (no access to other members' files)                                                         |
 
 Key design points:
 
@@ -311,6 +335,7 @@ npm run test:db      # database tests on a throwaway PostgreSQL 17 (no Docker ne
 
 - **Unit/component tests** (`src/**/__tests__`): capacity text and plurals, lesson availability rules, DST-safe dates, friendly error mapping, lesson form validation, My Lessons split, chunked secure storage, `LessonCard` and `CapacityIndicator` states.
 - **Database tests** (`supabase/tests`) run the real migrations and cover: joining, duplicates, full lessons, **simultaneous joins never exceeding capacity** (including raw concurrent inserts that bypass the function), cancellation freeing a spot, cancellation privacy, players unable to cancel for others, change their level or role, or create lessons, admin lesson and level management, inactive accounts, cancelled lessons, closed registration and deadlines, storage policies, and the full acceptance scenario.
+- **Waitlist, attendance and series** (`waitlist.test.ts`, `attendance.test.ts`, `lesson-series.test.ts`): first-come promotion on cancellation, deactivation and added courts; no promotion after registration closes; inactive players skipped; latecomers never take a freed spot from the waitlist; attendance timing, roles and privacy; all-or-nothing series updates and immutable `series_id`.
 - **Sign-up approval** (`supabase/tests/signup-approval.test.ts`): a new account is always a pending `player` whatever the sign-up metadata claims; a pending member sees no lessons, members or registrations, cannot join, and cannot approve themselves directly or through the admin function; only the coach approves, which records `approved_at` and unlocks joining; reactivating keeps the original approval date.
 - To run the database tests against the local Docker stack instead: `TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55522/postgres npm run test:db`, then `npm run db:reset` to clean up.
 
@@ -318,6 +343,6 @@ npm run test:db      # database tests on a throwaway PostgreSQL 17 (no Docker ne
 
 ## Ready for later (not built yet)
 
-- **Waitlist:** add `waitlisted` to the `registration_status` enum. Capacity logic only counts `joined` rows, so nothing else changes. Promotion could then run inside `cancel_registration`, under the same lock.
-- **Push notifications** (Expo Notifications): new lesson, reminder, lesson changed/cancelled, spot available. Lesson changes already produce database events.
+- **Push notifications** (Expo push service): "a spot opened, you're in", new lesson, lesson changed/cancelled. Today the app tells a promoted player the next time they open it, and lesson reminders are local notifications. Remote push needs a development/EAS build (Expo Go on Android does not support it), device push tokens stored per member, and a Supabase Edge Function or database webhook that sends the message when `promoted_at` is set.
+- **Court-fee split:** show each player's share of the court fee ("$12 each with 4 players"). It needs the club's court price per hour.
 - **Invite links and rejecting sign-ups:** today anyone can create a pending account and the coach approves it; there is no way to decline one other than leaving it pending. Invitation links (or a "decline" action that removes the auth user) would need a Supabase Edge Function holding the service-role key server-side.

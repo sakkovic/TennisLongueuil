@@ -16,12 +16,16 @@ import { locales, strings, type Locale, type TranslationKey } from './strings';
 
 const STORAGE_KEY = 'app.locale';
 
-function deviceLocale(): Locale {
+/**
+ * French first: the club is in Longueuil, so the app speaks French unless the
+ * phone is set to English. Members can switch in their profile.
+ */
+export function deviceLocale(): Locale {
   try {
     const code = Localization.getLocales()[0]?.languageCode?.toLowerCase();
-    return code === 'fr' ? 'fr' : 'en';
+    return code === 'en' ? 'en' : 'fr';
   } catch {
-    return 'en';
+    return 'fr';
   }
 }
 

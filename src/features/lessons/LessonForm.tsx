@@ -26,9 +26,10 @@ import {
   MIN_REPEAT_WEEKS,
   QUICK_START_MINUTES,
 } from '@/constants/lessons';
-import { colors, radius, spacing } from '@/constants/theme';
+import { colors, radius, spacing, stroke } from '@/constants/theme';
 import { useLevels } from '@/features/levels/hooks';
 import { useI18n } from '@/i18n';
+import { useValidationMessage } from '@/i18n/validation';
 import { capacityForCourts } from '@/utils/capacity';
 import {
   addMinutes,
@@ -82,6 +83,7 @@ export function LessonForm({
   onSubmit,
 }: LessonFormProps) {
   const { t, locale } = useI18n();
+  const v = useValidationMessage();
   const { data: levels } = useLevels();
   const schema = useMemo(
     () => createLessonFormSchema({ requireFutureStart }),
@@ -166,7 +168,7 @@ export function LessonForm({
             onChangeText={field.onChange}
             onBlur={field.onBlur}
             maxLength={MAX_TITLE_LENGTH}
-            error={errors.title?.message}
+            error={v(errors.title?.message)}
           />
         )}
       />
@@ -184,7 +186,7 @@ export function LessonForm({
                 value={field.value}
                 onChange={field.onChange}
                 minimumDate={requireFutureStart ? startOfDay(new Date()) : undefined}
-                error={errors.date?.message}
+                error={v(errors.date?.message)}
               />
               <ScrollSelector
                 label={t('nearbyDays')}
@@ -210,7 +212,7 @@ export function LessonForm({
                 mode="time"
                 value={field.value}
                 onChange={field.onChange}
-                error={errors.startTime?.message}
+                error={v(errors.startTime?.message)}
               />
               <ChipGroup
                 label={t('usualStartTimes')}
@@ -242,7 +244,7 @@ export function LessonForm({
         />
         {errors.durationMinutes?.message ? (
           <AppText variant="caption" tone="danger">
-            {errors.durationMinutes.message}
+            {v(errors.durationMinutes.message)}
           </AppText>
         ) : null}
 
@@ -310,7 +312,7 @@ export function LessonForm({
               </View>
               {errors.repeatWeeks?.message ? (
                 <AppText variant="caption" tone="danger">
-                  {errors.repeatWeeks.message}
+                  {v(errors.repeatWeeks.message)}
                 </AppText>
               ) : null}
               <AppText variant="caption" tone="subtle">
@@ -335,7 +337,7 @@ export function LessonForm({
             onChangeText={field.onChange}
             onBlur={field.onBlur}
             maxLength={MAX_LOCATION_LENGTH}
-            error={errors.location?.message}
+            error={v(errors.location?.message)}
           />
         )}
       />
@@ -367,7 +369,7 @@ export function LessonForm({
         </View>
         {errors.courtCount?.message ? (
           <AppText variant="caption" tone="danger">
-            {errors.courtCount.message}
+            {v(errors.courtCount.message)}
           </AppText>
         ) : null}
       </Card>
@@ -397,7 +399,7 @@ export function LessonForm({
             multiline
             maxLength={MAX_DESCRIPTION_LENGTH}
             placeholder={t('descriptionPlaceholder')}
-            error={errors.description?.message}
+            error={v(errors.description?.message)}
           />
         )}
       />
@@ -451,7 +453,7 @@ export function LessonForm({
         ) : null}
         {errors.deadlineOffsetMinutes?.message ? (
           <AppText variant="caption" tone="danger">
-            {errors.deadlineOffsetMinutes.message}
+            {v(errors.deadlineOffsetMinutes.message)}
           </AppText>
         ) : null}
         <AppText variant="caption" tone="subtle">
@@ -475,6 +477,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     backgroundColor: colors.primarySoft,
     borderRadius: radius.md,
+    borderWidth: stroke,
+    borderColor: colors.border,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },

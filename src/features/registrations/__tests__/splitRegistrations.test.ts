@@ -1,6 +1,6 @@
 import { makePlayerRegistration, NOW } from '@/test/fixtures';
 
-import { getHistoryLabel, splitRegistrations } from '../api';
+import { attendanceSummary, getHistoryLabel, splitRegistrations } from '../api';
 
 describe('splitRegistrations', () => {
   const later = makePlayerRegistration({
@@ -36,9 +36,29 @@ describe('splitRegistrations', () => {
     expect(history[history.length - 1].id).toBe(past.id);
   });
 
+  it('keeps a waitlist place in Upcoming until the lesson ends', () => {
+    const waiting = makePlayerRegistration({ status: 'waitlisted' });
+    const missed = makePlayerRegistration({ ...past, id: 'missed', status: 'waitlisted' });
+    const { upcoming, history } = splitRegistrations([waiting, missed], NOW);
+    expect(upcoming.map((r) => r.id)).toEqual([waiting.id]);
+    expect(history.map((r) => r.id)).toEqual(['missed']);
+    expect(getHistoryLabel(missed)).toBe('missedWaitlist');
+  });
+
   it('labels history entries without inventing attendance', () => {
-    expect(getHistoryLabel(past)).toBe('Registered');
-    expect(getHistoryLabel(cancelledByMe)).toBe('Cancelled');
-    expect(getHistoryLabel(lessonCancelled)).toBe('Lesson cancelled');
+    expect(getHistoryLabel(past)).toBe('registered');
+    expect(getHistoryLabel(cancelledByMe)).toBe('cancelled');
+    expect(getHistoryLabel(lessonCancelled)).toBe('lessonCancelled');
+  });
+
+  it('shows the attendance the coach recorded', () => {
+    const attended = makePlayerRegistration({ attendance: { status: 'present' } });
+    const noShow = makePlayerRegistration({ attendance: { status: 'absent' } });
+    expect(getHistoryLabel(attended)).toBe('present');
+    expect(getHistoryLabel(noShow)).toBe('absent');
+    expect(attendanceSummary([attended, noShow, past, cancelledByMe])).toEqual({
+      present: 1,
+      marked: 2,
+    });
   });
 });
