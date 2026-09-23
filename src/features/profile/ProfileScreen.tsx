@@ -73,17 +73,12 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
     <ScreenContainer onRefresh={retryProfile} refreshing={isRetryingProfile}>
       <PlayerProfileCard
         member={member}
+        levelNote={member.role === 'player' ? t('levelAssignedByCoach') : undefined}
         levelRank={findLevel(levels, member.player_level_id)?.rank}
         onChangePhoto={pickPhoto}
         uploadingPhoto={uploadAvatar.isPending}
       />
       {photoMessage ? <Banner tone={photoMessage.tone} message={photoMessage.text} /> : null}
-
-      {member.role === 'player' ? (
-        <AppText variant="caption" tone="subtle" style={styles.note}>
-          {t('levelAssignedByCoach')}
-        </AppText>
-      ) : null}
 
       <View style={styles.actions}>
         <View style={styles.language}>

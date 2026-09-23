@@ -42,7 +42,7 @@ export default function AdminLessonsScreen() {
           icon="add"
           size="md"
           fullWidth={false}
-          onPress={() => router.push('/admin/lesson/new')}
+          onPress={() => router.push('/admin/lessons/new')}
         />
       </View>
       {weeks.length > 1 && selectedWeek ? (
@@ -65,7 +65,7 @@ export default function AdminLessonsScreen() {
           action={
             <Button
               label={t('createLesson')}
-              onPress={() => router.push('/admin/lesson/new')}
+              onPress={() => router.push('/admin/lessons/new')}
               fullWidth={false}
             />
           }
@@ -78,7 +78,7 @@ export default function AdminLessonsScreen() {
             key={lesson.id}
             lesson={lesson}
             onPress={() =>
-              router.push({ pathname: '/admin/lesson/[id]', params: { id: lesson.id } })
+              router.push({ pathname: '/admin/lessons/[id]', params: { id: lesson.id } })
             }
           />
         ))

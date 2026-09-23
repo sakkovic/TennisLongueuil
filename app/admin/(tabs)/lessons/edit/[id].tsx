@@ -37,13 +37,20 @@ export default function EditLessonScreen() {
 
   const later = laterInSeries(lesson.id, following.data ?? []);
 
+  // Back to the lesson screen, which confirms how many lessons were saved.
+  const backToLesson = (saved: number) =>
+    router.dismissTo({
+      pathname: '/admin/lessons/[id]',
+      params: { id: lesson.id, saved: String(saved) },
+    });
+
   const saveThisOnly = (input: LessonInput, invitedPlayerIds = invited) =>
     save.mutate(
       { lessonId: lesson.id, inputs: [input], invitedPlayerIds },
       {
         onSuccess: () => {
           setDraft(null);
-          router.back();
+          backToLesson(1);
         },
         onError: (error) => logError('updateLesson', error),
       },
@@ -56,9 +63,9 @@ export default function EditLessonScreen() {
         invitedPlayerIds: invited,
       },
       {
-        onSuccess: () => {
+        onSuccess: (_result, variables) => {
           setDraft(null);
-          router.back();
+          backToLesson(variables.lessons.length);
         },
         onError: (error) => logError('updateLessons', error),
       },

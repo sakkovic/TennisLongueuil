@@ -6,7 +6,7 @@
     "scheme": "tennislongueuil",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "ca.tennislongueuil.app"
@@ -16,7 +16,6 @@
       "adaptiveIcon": {
         "backgroundColor": "#1A231C",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
@@ -33,9 +32,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
-          "imageWidth": 140,
+          "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#04080B"
+          "backgroundColor": "#1A231C"
         }
       ],
       [
@@ -60,6 +59,13 @@
     "experiments": {
       "typedRoutes": true
     },
-    "backgroundColor": "#04080B"
+    "backgroundColor": "#F6F6F6",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d284a44b-cec0-4ef5-97a0-66d8c4011e42"
+      }
+    },
+    "owner": "sakkaanis"
   }
 }

@@ -39,7 +39,7 @@ type StatusAction = 'cancel' | 'reinstate';
 
 export default function AdminLessonScreen() {
   const t = useT();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, saved } = useLocalSearchParams<{ id: string; saved?: string }>();
   const lessonQuery = useLesson(id);
   const lesson = lessonQuery.data;
   const now = new Date();
@@ -53,6 +53,17 @@ export default function AdminLessonScreen() {
   const [action, setAction] = useState<StatusAction>('cancel');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+
+  // "saved" comes back from the edit screen (1 lesson, or a whole series).
+  // Derived, not stored: that screen returns to this one instead of mounting
+  // a new one, so a state initialiser would never run.
+  const savedCount = Number(saved ?? 0);
+  const savedNotice =
+    savedCount === 1
+      ? t('lessonUpdated')
+      : savedCount > 1
+        ? t('lessonsUpdated', { count: savedCount })
+        : null;
   const [attendanceError, setAttendanceError] = useState<string | null>(null);
   useLessonsRealtime(id);
 
@@ -134,7 +145,9 @@ export default function AdminLessonScreen() {
       {lesson.is_private ? null : (
         <Stack.Screen options={{ headerRight: () => <ShareLessonButton lesson={lesson} /> }} />
       )}
-      {notice ? <Banner tone="success" message={notice} /> : null}
+      {(notice ?? savedNotice) ? (
+        <Banner tone="success" message={notice ?? savedNotice ?? ''} />
+      ) : null}
 
       <LessonSummaryCard lesson={lesson} availability={availability}>
         <AppText variant="caption" tone="muted">
@@ -235,7 +248,7 @@ export default function AdminLessonScreen() {
           icon="create-outline"
           variant="secondary"
           onPress={() =>
-            router.push({ pathname: '/admin/lesson/edit/[id]', params: { id: lesson.id } })
+            router.push({ pathname: '/admin/lessons/edit/[id]', params: { id: lesson.id } })
           }
         />
         {canCancel ? (

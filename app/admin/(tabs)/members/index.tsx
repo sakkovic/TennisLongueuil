@@ -9,7 +9,6 @@ import { Banner } from '@/components/Banner';
 import { Card } from '@/components/Card';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { ScreenHeader } from '@/components/ScreenHeader';
 import { SectionHeader } from '@/components/SectionHeader';
 import { EmptyState, ErrorState, LoadingState } from '@/components/States';
 import { TextField } from '@/components/TextField';
@@ -40,19 +39,12 @@ export default function MembersScreen() {
   );
 
   return (
-    <ScreenContainer
-      edges={['top']}
-      onRefresh={() => void members.refetch()}
-      refreshing={members.isRefetching}
-    >
-      <ScreenHeader
-        title={t('members')}
-        subtitle={
-          members.data
-            ? t('membersActiveTotal', { active: activeCount, total: all.length })
-            : undefined
-        }
-      />
+    <ScreenContainer onRefresh={() => void members.refetch()} refreshing={members.isRefetching}>
+      {members.data ? (
+        <AppText tone="muted">
+          {t('membersActiveTotal', { active: activeCount, total: all.length })}
+        </AppText>
+      ) : null}
       {pendingCount > 0 ? (
         <Banner
           tone="warning"
@@ -118,7 +110,7 @@ function MemberRow({ member, levelRank }: { member: Member; levelRank?: number }
   };
   return (
     <Card
-      onPress={() => router.push({ pathname: '/admin/member/[id]', params: { id: member.id } })}
+      onPress={() => router.push({ pathname: '/admin/members/[id]', params: { id: member.id } })}
       accessibilityLabel={`${member.full_name}, ${member.player_level_name ?? t('noLevel')}, ${stateLabels[state]}`}
       // Pending sign-ups stay at full contrast: they need the coach's attention.
       style={state === 'deactivated' ? styles.inactive : undefined}

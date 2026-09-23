@@ -56,11 +56,11 @@ export default function AdminHomeScreen() {
         playerName={firstName(member.full_name)}
         slots={slotsFromLessons(lessons.data ?? [], undefined)}
         loading={lessons.isPending}
-        onPressSlot={(id) => router.push({ pathname: '/admin/lesson/[id]', params: { id } })}
+        onPressSlot={(id) => router.push({ pathname: '/admin/lessons/[id]', params: { id } })}
         primaryAction={{
           label: t('createALesson'),
           icon: 'add-circle',
-          onPress: () => router.push('/admin/lesson/new'),
+          onPress: () => router.push('/admin/lessons/new'),
         }}
       />
 

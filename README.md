@@ -4,17 +4,17 @@ A small, private mobile app for organising group tennis lessons at **Complexe Sp
 
 The coach creates lessons. Players see them, join with one tap, see who else is coming, and can cancel (optionally telling the coach why). Capacity (4 players per court) is enforced atomically by the database, so a lesson can never be overbooked, even when two players tap **Join** at the same moment.
 
-- **Players**: sign up (the coach approves the account before it works), upcoming lessons, lesson details, join/cancel, participant list, "My Lessons" (upcoming + history), profile with photo and level badge.
+- **Players**: sign up (the coach approves the account before it works), upcoming lessons, lesson details, join/cancel, participant list, Bookings (upcoming + history), profile with photo and level badge.
 - **Coach (admin)**: approve new sign-ups, create/edit/cancel lessons, registrations and private cancellation reasons, members, player levels, account activation.
 - Built for about 10–15 players and one coach, on iOS and Android, in English and French.
-- **Club rules** (enforced by the database): registration closes **4 hours** before a lesson; players can cancel until **24 hours** before.
+- **Club rules** (enforced by the database): players can join until the lesson **starts** (the coach can close registration earlier); players can cancel until **24 hours** before.
 
 ### Branding
 
-- Aqua theme sampled from the SaKKa.Tennis artwork in `assets/sakkatennis_*.png`. All colours, fonts and spacing live in `src/constants/theme.ts`: Plus Jakarta Sans for the interface, Playfair Display (the logo's serif) for the brand wordmark only.
+- Four colours only — ink `#1A231C`, tennis green `#7CB342`, lime `#D7F23F`, white — in `src/constants/theme.ts`. Plus Jakarta Sans is the interface font; Playfair Display (the logo's serif) is the wordmark only.
 - The home screens open with a flyer-style landing (`src/features/home/SessionPoster.tsx`): emblem over a court drawing, the wordmark, "120-minute sessions", the location, the next sessions with spots left, the price and one big call to action. Visitors see it before signing in (`app/(auth)/welcome.tsx`), players on Home, and the coach on the coach home.
 - The club offer (coach, CP1, session length, price) lives in `src/constants/brand.ts`.
-- App icon, Android adaptive icon, splash and the in-app emblem (`assets/brand/emblem.png`) were generated from the emblem artwork.
+- App icon, Android adaptive icon, splash and the in-app emblem (`assets/brand/emblem.png`) use the green emblem on ink. Rebuild them with `python scripts/generate-brand-icons.py`.
 
 ---
 
@@ -42,13 +42,9 @@ app/                         Expo Router routes (screens only)
 ├── reset-password.tsx       "Choose a new password" after a reset link or code
 ├── (auth)/                  welcome (flyer landing), login, sign-up, forgot-password
 ├── (player)/                Player app
-│   ├── (tabs)/              Home · Lessons · My Lessons · Profile
-│   ├── lesson/[id].tsx      Lesson details (join, cancel, participants)
-│   └── edit-profile.tsx, change-password.tsx
+│   └── (tabs)/              Home · Lessons · Bookings · Profile (each tab has its own stack)
 └── admin/                   Coach app (URL prefix /admin)
-    ├── (tabs)/              Home · Lessons · Members · Profile
-    ├── lesson/new.tsx, lesson/[id].tsx, lesson/edit/[id].tsx
-    └── member/[id].tsx
+    └── (tabs)/              Home · Lessons · Members · Profile (create/edit/history and member details live in the tab stacks)
 
 src/
 ├── components/              Shared UI: Button, TextField, Card, CapacityIndicator, ParticipantList,

@@ -28,7 +28,7 @@ export default function NewLessonScreen() {
         onSuccess: (ids) =>
           ids.length > 1
             ? router.replace('/admin/lessons')
-            : router.replace({ pathname: '/admin/lesson/[id]', params: { id: ids[0] } }),
+            : router.replace({ pathname: '/admin/lessons/[id]', params: { id: ids[0] } }),
         onError: (error) => logError('createLessons', error),
       },
     );

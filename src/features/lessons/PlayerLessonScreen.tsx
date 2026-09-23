@@ -65,6 +65,8 @@ export function PlayerLessonScreen() {
         <Banner tone="success" message={t('spotOpened')} />
       ) : null}
 
+      {lesson.is_private ? <Banner tone="info" message={t('privateForYou')} /> : null}
+
       <LessonSummaryCard lesson={lesson} availability={availability}>
         <LessonActions lesson={lesson} userId={member.id} detailed />
       </LessonSummaryCard>

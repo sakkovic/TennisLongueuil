@@ -13,6 +13,7 @@ const subScreen = {
   headerShadowVisible: false,
   headerStyle: { backgroundColor: colors.header },
   headerBackButtonDisplayMode: 'minimal',
+  statusBarStyle: 'light',
 } as const;
 
 export default function AuthLayout() {

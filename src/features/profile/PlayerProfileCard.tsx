@@ -10,6 +10,8 @@ import type { Member } from '@/types/models';
 
 interface PlayerProfileCardProps {
   member: Member;
+  /** Note under the player's level, e.g. that the coach assigns it. */
+  levelNote?: string;
   levelRank?: number | null;
   /** When provided, shows a camera button on the photo. */
   onChangePhoto?: () => void;
@@ -21,6 +23,7 @@ interface PlayerProfileCardProps {
 /** The member card: photo, name, level badge, contact details and upcoming lessons. */
 export function PlayerProfileCard({
   member,
+  levelNote,
   levelRank,
   onChangePhoto,
   uploadingPhoto = false,
@@ -71,10 +74,15 @@ export function PlayerProfileCard({
           {isCoach ? (
             <StatusBadge label={t('coach')} tone="primary" icon="ribbon-outline" />
           ) : (
-            <LevelBadge name={member.player_level_name} rank={levelRank} size="lg" />
+            <LevelBadge name={member.player_level_name} rank={levelRank} />
           )}
           <AppText tone="muted">{isCoach ? t('coachAdmin') : t('tennisMember')}</AppText>
         </View>
+        {!isCoach && levelNote ? (
+          <AppText variant="caption" tone="subtle" style={styles.center}>
+            {levelNote}
+          </AppText>
+        ) : null}
         {showStatus || !member.active ? <AccountStateBadge member={member} /> : null}
       </View>
 

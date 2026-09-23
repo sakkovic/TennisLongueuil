@@ -371,6 +371,7 @@ export const strings = {
     privateBadge: 'Private',
     privateOnInvite: 'Private lesson · by invitation',
     privateForYou: 'Your coach set this lesson up for you.',
+    lessonUpdated: 'Lesson updated.',
   },
   fr: {
     tabHome: 'Accueil',
@@ -745,6 +746,7 @@ export const strings = {
     privateBadge: 'Privée',
     privateOnInvite: 'Leçon privée · sur invitation',
     privateForYou: 'Votre coach a organisé cette leçon pour vous.',
+    lessonUpdated: 'Leçon mise à jour.',
   },
 } as const;
 

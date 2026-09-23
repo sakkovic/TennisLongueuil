@@ -237,7 +237,7 @@ export default function MemberDetailScreen() {
             variant="upcoming"
             onPress={() =>
               router.push({
-                pathname: '/admin/lesson/[id]',
+                pathname: '/admin/lessons/[id]',
                 params: { id: registration.lesson.id },
               })
             }

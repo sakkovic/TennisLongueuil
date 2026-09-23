@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router/js-tabs';
 
-import { inkHeader, tabScreenOptions } from '@/constants/navigation';
+import { tabScreenOptions } from '@/constants/navigation';
 import { useT } from '@/i18n';
 
 export default function AdminTabsLayout() {
@@ -43,8 +43,6 @@ export default function AdminTabsLayout() {
         name="profile"
         options={{
           title: t('tabProfile'),
-          headerShown: true,
-          ...inkHeader,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'person' : 'person-outline'} color={color} size={24} />
           ),

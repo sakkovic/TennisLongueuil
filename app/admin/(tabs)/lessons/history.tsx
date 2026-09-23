@@ -57,7 +57,7 @@ export default function AdminHistoryScreen() {
             lesson={lesson}
             archive
             onPress={() =>
-              router.push({ pathname: '/admin/lesson/[id]', params: { id: lesson.id } })
+              router.push({ pathname: '/admin/lessons/[id]', params: { id: lesson.id } })
             }
           />
         ))
