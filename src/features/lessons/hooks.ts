@@ -9,6 +9,7 @@ import type { AttendanceStatus, LessonStatus } from '@/types/models';
 import {
   createLessons,
   fetchFollowingInSeries,
+  setLessonInvites,
   fetchLesson,
   fetchPastLessons,
   fetchUpcomingLessons,
@@ -94,11 +95,23 @@ export function useLessonsRealtime(lessonId?: string) {
  * Creates one lesson, a weekly series, or saves an edit. Always resolves to
  * the ids that were written, oldest first.
  */
+export interface SaveLessonInput {
+  lessonId?: string;
+  inputs: LessonInput[];
+  /** Guests of a private lesson; empty for a lesson open to everyone. */
+  invitedPlayerIds: string[];
+}
+
 export function useSaveLesson() {
   const invalidate = useInvalidateLessons();
   return useMutation({
-    mutationFn: ({ lessonId, inputs }: { lessonId?: string; inputs: LessonInput[] }) =>
-      lessonId ? updateLesson(lessonId, inputs[0]).then(() => [lessonId]) : createLessons(inputs),
+    mutationFn: async ({ lessonId, inputs, invitedPlayerIds }: SaveLessonInput) => {
+      const ids = lessonId
+        ? await updateLesson(lessonId, inputs[0]).then(() => [lessonId])
+        : await createLessons(inputs);
+      await setLessonInvites(ids, inputs[0].is_private ? invitedPlayerIds : []);
+      return ids;
+    },
     onSettled: invalidate,
   });
 }
@@ -130,7 +143,19 @@ export function useFollowingInSeries(
 export function useUpdateLessons() {
   const invalidate = useInvalidateLessons();
   return useMutation({
-    mutationFn: (lessons: (LessonInput & { id: string })[]) => updateLessons(lessons),
+    mutationFn: async ({
+      lessons,
+      invitedPlayerIds,
+    }: {
+      lessons: (LessonInput & { id: string })[];
+      invitedPlayerIds: string[];
+    }) => {
+      await updateLessons(lessons);
+      await setLessonInvites(
+        lessons.map((lesson) => lesson.id),
+        lessons[0]?.is_private ? invitedPlayerIds : [],
+      );
+    },
     onSettled: invalidate,
   });
 }

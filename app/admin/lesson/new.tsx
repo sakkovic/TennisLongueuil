@@ -17,12 +17,13 @@ export default function NewLessonScreen() {
   const existing = useUpcomingLessons();
   const [draft, setDraft] = useState<LessonInput[] | null>(null);
   const [conflicts, setConflicts] = useState<LessonInput[]>([]);
+  const [invited, setInvited] = useState<string[]>([]);
 
-  const create = (inputs: LessonInput[]) => {
+  const create = (inputs: LessonInput[], invitedPlayerIds = invited) => {
     setDraft(null);
     setConflicts([]);
     save.mutate(
-      { inputs },
+      { inputs, invitedPlayerIds },
       {
         onSuccess: (ids) =>
           ids.length > 1
@@ -33,12 +34,13 @@ export default function NewLessonScreen() {
     );
   };
 
-  const handleSubmit = (inputs: LessonInput[]) => {
+  const handleSubmit = (inputs: LessonInput[], invitedPlayerIds: string[]) => {
+    setInvited(invitedPlayerIds);
     void (async () => {
       const latest = existing.data ?? (await existing.refetch()).data ?? [];
       const colliding = findConflictingInputs(inputs, latest);
       if (colliding.length === 0) {
-        create(inputs);
+        create(inputs, invitedPlayerIds);
         return;
       }
       setDraft(inputs);

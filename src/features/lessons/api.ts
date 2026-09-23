@@ -13,8 +13,9 @@ import type { AttendanceStatus, LessonStatus } from '@/types/models';
 const LESSON_COLUMNS = `
   id, title, description, start_time, end_time, location, court_count, capacity,
   registered_count, waitlist_count, registration_open, registration_deadline, status,
-  player_level_id, series_id,
+  player_level_id, series_id, is_private,
   level:player_levels ( id, name, rank ),
+  invites:lesson_invites ( player_id ),
   registrations:lesson_registrations (
     id, player_id, status, joined_at, cancelled_at, cancellation_reason, promoted_at,
     player:profiles ( id, full_name, avatar_path, updated_at ),
@@ -62,6 +63,13 @@ export interface LessonInput {
   player_level_id: number | null;
   registration_open: boolean;
   registration_deadline: string | null;
+  /** Only the invited players see a private lesson (see setLessonInvites). */
+  is_private: boolean;
+}
+
+/** The players of a private lesson, as the coach picked them. */
+export function getInvitedPlayerIds(lesson: Pick<Lesson, 'invites'>): string[] {
+  return lesson.invites.map((invite) => invite.player_id);
 }
 
 /**
@@ -126,7 +134,7 @@ export async function updateLessons(lessons: (LessonInput & { id: string })[]): 
 }
 
 const SERIES_COLUMNS =
-  'id, title, description, start_time, end_time, location, court_count, player_level_id, registration_open, registration_deadline, registered_count';
+  'id, title, description, start_time, end_time, location, court_count, player_level_id, registration_open, registration_deadline, registered_count, is_private';
 
 export interface SeriesLesson extends LessonInput {
   id: string;
@@ -169,6 +177,20 @@ const byJoinedAt = (a: LessonRegistration, b: LessonRegistration) =>
 
 export function getActiveRegistrations(lesson: Lesson): LessonRegistration[] {
   return lesson.registrations.filter((r) => r.status === 'joined').sort(byJoinedAt);
+}
+
+/**
+ * Coach only: set the guest list of one lesson or of a whole series. New
+ * guests are registered right away, players taken off the list lose their
+ * spot. For a lesson that is not private the list must be empty.
+ */
+export async function setLessonInvites(lessonIds: string[], playerIds: string[]): Promise<void> {
+  if (lessonIds.length === 0) return;
+  const { error } = await supabase.rpc('admin_set_lesson_invites', {
+    p_lesson_ids: lessonIds,
+    p_player_ids: playerIds,
+  });
+  if (error) throw error;
 }
 
 /**

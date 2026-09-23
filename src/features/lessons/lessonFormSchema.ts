@@ -16,9 +16,10 @@ import {
   MIN_REPEAT_WEEKS,
   REGISTRATION_LEAD_MINUTES,
 } from '@/constants/lessons';
+import { capacityForCourts } from '@/utils/capacity';
 import { addMinutes, addWeeks, combineDateAndTime } from '@/utils/date';
 
-import type { Lesson, LessonInput } from './api';
+import { getInvitedPlayerIds, type Lesson, type LessonInput } from './api';
 
 const MAX_DURATION_MINUTES = MAX_LESSON_DURATION_HOURS * 60;
 
@@ -74,6 +75,9 @@ export function createLessonFormSchema({ requireFutureStart }: { requireFutureSt
         .min(REGISTRATION_LEAD_MINUTES, 'Registration must close before the lesson starts.'),
       repeatWeekly: z.boolean(),
       repeatWeeks: z.number().int(),
+      /** Private lesson: only the chosen players see it and hold a spot. */
+      isPrivate: z.boolean(),
+      invitedPlayerIds: z.array(z.string()),
     })
     .superRefine((values, ctx) => {
       if (requireFutureStart && firstStart(values) <= new Date()) {
@@ -81,6 +85,20 @@ export function createLessonFormSchema({ requireFutureStart }: { requireFutureSt
           code: 'custom',
           path: ['startTime'],
           message: 'The lesson must start in the future.',
+        });
+      }
+      if (values.isPrivate && values.invitedPlayerIds.length === 0) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['invitedPlayerIds'],
+          message: 'Choose at least one player for a private lesson.',
+        });
+      }
+      if (values.invitedPlayerIds.length > capacityForCourts(values.courtCount)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['invitedPlayerIds'],
+          message: 'There are more players than spots. Add a court or remove players.',
         });
       }
       if (
@@ -136,6 +154,8 @@ export function defaultLessonFormValues(now: Date = new Date()): LessonFormValue
     deadlineOffsetMinutes: DEFAULT_DEADLINE_OFFSET_MINUTES,
     repeatWeekly: true,
     repeatWeeks: DEFAULT_REPEAT_WEEKS,
+    isPrivate: false,
+    invitedPlayerIds: [],
   };
 }
 
@@ -159,6 +179,8 @@ export function lessonToFormValues(lesson: Lesson): LessonFormValues {
     // Editing never repeats: each occurrence is an independent lesson.
     repeatWeekly: false,
     repeatWeeks: DEFAULT_REPEAT_WEEKS,
+    isPrivate: lesson.is_private,
+    invitedPlayerIds: getInvitedPlayerIds(lesson),
   };
 }
 
@@ -175,6 +197,7 @@ export function toLessonInputs(values: LessonFormValues): LessonInput[] {
     court_count: values.courtCount,
     player_level_id: values.playerLevelId,
     registration_open: values.registrationOpen,
+    is_private: values.isPrivate,
   };
 
   return occurrenceStarts(values).map((start) => ({

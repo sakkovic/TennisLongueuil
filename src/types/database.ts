@@ -55,6 +55,49 @@ export type Database = {
           },
         ]
       }
+      lesson_invites: {
+        Row: {
+          invited_at: string
+          invited_by: string | null
+          lesson_id: string
+          player_id: string
+        }
+        Insert: {
+          invited_at?: string
+          invited_by?: string | null
+          lesson_id: string
+          player_id: string
+        }
+        Update: {
+          invited_at?: string
+          invited_by?: string | null
+          lesson_id?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_invites_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_invites_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_registrations: {
         Row: {
           cancellation_reason: string | null
@@ -118,6 +161,7 @@ export type Database = {
           description: string | null
           end_time: string
           id: string
+          is_private: boolean
           location: string
           player_level_id: number | null
           registered_count: number
@@ -138,6 +182,7 @@ export type Database = {
           description?: string | null
           end_time: string
           id?: string
+          is_private?: boolean
           location?: string
           player_level_id?: number | null
           registered_count?: number
@@ -158,6 +203,7 @@ export type Database = {
           description?: string | null
           end_time?: string
           id?: string
+          is_private?: boolean
           location?: string
           player_level_id?: number | null
           registered_count?: number
@@ -278,6 +324,10 @@ export type Database = {
           p_registration_id: string
           p_status?: Database["public"]["Enums"]["attendance_status"]
         }
+        Returns: Json
+      }
+      admin_set_lesson_invites: {
+        Args: { p_lesson_ids: string[]; p_player_ids: string[] }
         Returns: Json
       }
       admin_set_member_active: {

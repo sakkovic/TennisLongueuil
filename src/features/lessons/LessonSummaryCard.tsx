@@ -72,6 +72,9 @@ export function LessonSummaryCard({ lesson, availability, children }: LessonSumm
         <InfoRow icon="location-outline" text={lesson.location} />
         <InfoRow icon="tennisball-outline" text={lesson.level?.name ?? t('allLevels')} />
         <InfoRow icon="grid-outline" text={`${courts} · ${players}`} />
+        {lesson.is_private ? (
+          <InfoRow icon="lock-closed-outline" text={t('privateOnInvite')} />
+        ) : null}
         {/* Only worth showing when the coach closes registration before the start. */}
         {upcoming && availability.registrationClosesAt < new Date(lesson.start_time) ? (
           <InfoRow

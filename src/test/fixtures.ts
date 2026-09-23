@@ -48,6 +48,8 @@ export function makeLesson(overrides: Partial<Lesson> = {}): Lesson {
     status: 'scheduled',
     player_level_id: 2,
     series_id: null,
+    is_private: false,
+    invites: [],
     level: { id: 2, name: 'Intermediate', rank: 20 },
     registrations,
     ...overrides,

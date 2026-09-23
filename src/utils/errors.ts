@@ -55,6 +55,22 @@ const BUSINESS_MESSAGES: Record<string, Localized> = {
     en: "You're not registered for this lesson.",
     fr: 'Vous n’êtes pas inscrit à cette leçon.',
   },
+  NOT_INVITED: {
+    en: 'This lesson is private. Ask your coach to add you.',
+    fr: 'Cette leçon est privée. Demandez à votre coach de vous ajouter.',
+  },
+  NO_PLAYERS_INVITED: {
+    en: 'Choose at least one player for a private lesson.',
+    fr: 'Choisissez au moins un joueur pour une leçon privée.',
+  },
+  TOO_MANY_PLAYERS: {
+    en: 'There are more players than spots. Add a court or remove players.',
+    fr: 'Il y a plus de joueurs que de places. Ajoutez un terrain ou retirez des joueurs.',
+  },
+  INVALID_PLAYER: {
+    en: 'Only active players can be invited.',
+    fr: 'Seuls les joueurs actifs peuvent être invités.',
+  },
   REGISTRATION_NOT_FOUND: {
     en: 'This registration no longer exists.',
     fr: 'Cette inscription n’existe plus.',

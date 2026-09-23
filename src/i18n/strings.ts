@@ -361,6 +361,16 @@ export const strings = {
     pillClosed: 'Closed',
     untilStart: 'When it starts',
     openUntilStart: 'Players can join until the lesson starts.',
+    whoCanJoin: 'Who can join',
+    privateLesson: 'Private lesson',
+    privateLessonHint:
+      'Only the players you choose see this lesson, and their spot is kept for them.',
+    invitedPlayers: 'Invited players',
+    playersChosen: '{count} of {max} chosen',
+    noPlayersToInvite: 'No active player yet. Approve a member first.',
+    privateBadge: 'Private',
+    privateOnInvite: 'Private lesson · by invitation',
+    privateForYou: 'Your coach set this lesson up for you.',
   },
   fr: {
     tabHome: 'Accueil',
@@ -725,6 +735,16 @@ export const strings = {
     pillClosed: 'Fermé',
     untilStart: 'Au début',
     openUntilStart: 'Les joueurs peuvent s’inscrire jusqu’au début de la leçon.',
+    whoCanJoin: 'Qui peut s’inscrire',
+    privateLesson: 'Leçon privée',
+    privateLessonHint:
+      'Seuls les joueurs que vous choisissez voient cette leçon, et leur place leur est réservée.',
+    invitedPlayers: 'Joueurs invités',
+    playersChosen: '{count} sur {max} choisis',
+    noPlayersToInvite: 'Aucun joueur actif pour l’instant. Approuvez d’abord un membre.',
+    privateBadge: 'Privée',
+    privateOnInvite: 'Leçon privée · sur invitation',
+    privateForYou: 'Votre coach a organisé cette leçon pour vous.',
   },
 } as const;
 

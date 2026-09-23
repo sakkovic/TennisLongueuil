@@ -31,6 +31,10 @@ const FRENCH: Record<string, string> = {
   'Registration must close before the lesson starts.':
     'Les inscriptions doivent fermer avant le début de la leçon.',
   'The lesson must start in the future.': 'La leçon doit commencer dans le futur.',
+  'Choose at least one player for a private lesson.':
+    'Choisissez au moins un joueur pour une leçon privée.',
+  'There are more players than spots. Add a court or remove players.':
+    'Il y a plus de joueurs que de places. Ajoutez un terrain ou retirez des joueurs.',
   'This reset link is invalid or has expired. Please request a new one.':
     'Ce lien de réinitialisation est invalide ou a expiré. Demandez-en un nouveau.',
 };

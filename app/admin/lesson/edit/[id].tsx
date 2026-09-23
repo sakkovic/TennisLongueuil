@@ -27,6 +27,7 @@ export default function EditLessonScreen() {
   const saveSeries = useUpdateLessons();
   // The edit waiting for "this lesson only" or "this and the following".
   const [draft, setDraft] = useState<LessonInput | null>(null);
+  const [invited, setInvited] = useState<string[]>([]);
 
   if (lessonQuery.isPending) return <LoadingState />;
   if (lessonQuery.isError) {
@@ -36,9 +37,9 @@ export default function EditLessonScreen() {
 
   const later = laterInSeries(lesson.id, following.data ?? []);
 
-  const saveThisOnly = (input: LessonInput) =>
+  const saveThisOnly = (input: LessonInput, invitedPlayerIds = invited) =>
     save.mutate(
-      { lessonId: lesson.id, inputs: [input] },
+      { lessonId: lesson.id, inputs: [input], invitedPlayerIds },
       {
         onSuccess: () => {
           setDraft(null);
@@ -49,13 +50,19 @@ export default function EditLessonScreen() {
     );
 
   const saveFollowing = (input: LessonInput) =>
-    saveSeries.mutate(applyEditToSeries(lesson, input, following.data ?? []), {
-      onSuccess: () => {
-        setDraft(null);
-        router.back();
+    saveSeries.mutate(
+      {
+        lessons: applyEditToSeries(lesson, input, following.data ?? []),
+        invitedPlayerIds: invited,
       },
-      onError: (error) => logError('updateLessons', error),
-    });
+      {
+        onSuccess: () => {
+          setDraft(null);
+          router.back();
+        },
+        onError: (error) => logError('updateLessons', error),
+      },
+    );
 
   const error = save.error ?? saveSeries.error;
 
@@ -67,11 +74,12 @@ export default function EditLessonScreen() {
         submitLabel={t('saveChanges')}
         submitting={save.isPending || saveSeries.isPending}
         submitError={draft === null && error ? getErrorMessage(error) : null}
-        onSubmit={([input]) => {
+        onSubmit={([input], invitedPlayerIds) => {
           save.reset();
           saveSeries.reset();
+          setInvited(invitedPlayerIds);
           if (later > 0) setDraft(input);
-          else saveThisOnly(input);
+          else saveThisOnly(input, invitedPlayerIds);
         }}
       />
       <ConfirmationModal

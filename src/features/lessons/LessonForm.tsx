@@ -28,6 +28,7 @@ import {
 } from '@/constants/lessons';
 import { colors, radius, spacing, stroke } from '@/constants/theme';
 import { useLevels } from '@/features/levels/hooks';
+import { PlayerPicker } from '@/features/members/PlayerPicker';
 import { useI18n } from '@/i18n';
 import { useValidationMessage } from '@/i18n/validation';
 import { capacityForCourts } from '@/utils/capacity';
@@ -65,7 +66,8 @@ interface LessonFormProps {
   submitLabel: string;
   submitting: boolean;
   submitError?: string | null;
-  onSubmit: (inputs: LessonInput[]) => void;
+  /** The rows to save, and the guests when the lesson is private. */
+  onSubmit: (inputs: LessonInput[], invitedPlayerIds: string[]) => void;
 }
 
 /** Keeps a value that isn't one of the presets (e.g. an older lesson) selectable. */
@@ -89,7 +91,7 @@ export function LessonForm({
     () => createLessonFormSchema({ requireFutureStart }),
     [requireFutureStart],
   );
-  const { control, handleSubmit, formState } = useForm<LessonFormValues>({
+  const { control, handleSubmit, formState, setValue } = useForm<LessonFormValues>({
     resolver: zodResolver(schema),
     defaultValues: initialValues,
   });
@@ -101,6 +103,7 @@ export function LessonForm({
   const courtCount = useWatch({ control, name: 'courtCount' });
   const deadlineOffsetMinutes = useWatch({ control, name: 'deadlineOffsetMinutes' });
   const repeatWeekly = useWatch({ control, name: 'repeatWeekly' });
+  const isPrivate = useWatch({ control, name: 'isPrivate' });
   const repeatWeeks = useWatch({ control, name: 'repeatWeeks' });
 
   const start = combineDateAndTime(date, startTime);
@@ -144,7 +147,10 @@ export function LessonForm({
   const lastStart = seriesStarts[seriesStarts.length - 1];
 
   const submit = handleSubmit((values) =>
-    onSubmit(toLessonInputs({ ...values, repeatWeekly: repeating })),
+    onSubmit(
+      toLessonInputs({ ...values, repeatWeekly: repeating }),
+      values.isPrivate ? values.invitedPlayerIds : [],
+    ),
   );
 
   return (
@@ -403,6 +409,39 @@ export function LessonForm({
           />
         )}
       />
+
+      <Card>
+        <SectionHeader title={t('whoCanJoin')} />
+        <Controller
+          control={control}
+          name="isPrivate"
+          render={({ field }) => (
+            <SwitchRow
+              label={t('privateLesson')}
+              description={t('privateLessonHint')}
+              value={field.value}
+              onValueChange={(next) => {
+                field.onChange(next);
+                if (!next) setValue('invitedPlayerIds', []);
+              }}
+            />
+          )}
+        />
+        {isPrivate ? (
+          <Controller
+            control={control}
+            name="invitedPlayerIds"
+            render={({ field }) => (
+              <PlayerPicker
+                value={field.value}
+                onChange={field.onChange}
+                max={capacity}
+                error={v(errors.invitedPlayerIds?.message)}
+              />
+            )}
+          />
+        ) : null}
+      </Card>
 
       <Card>
         <SectionHeader title={t('registration')} />

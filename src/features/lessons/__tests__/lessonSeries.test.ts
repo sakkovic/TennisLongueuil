@@ -15,6 +15,7 @@ const occurrence = (id: string, start: Date): SeriesLesson => ({
   registration_open: true,
   registration_deadline: new Date(start.getTime() - 4 * 3_600_000).toISOString(),
   registered_count: 0,
+  is_private: false,
 });
 
 const series = [

@@ -57,7 +57,9 @@ export function PlayerLessonScreen() {
       onRefresh={() => void lessonQuery.refetch()}
       refreshing={lessonQuery.isRefetching}
     >
-      <Stack.Screen options={{ headerRight: () => <ShareLessonButton lesson={lesson} /> }} />
+      {lesson.is_private ? null : (
+        <Stack.Screen options={{ headerRight: () => <ShareLessonButton lesson={lesson} /> }} />
+      )}
 
       {mine?.status === 'joined' && mine.promoted_at && availability.state === 'registered' ? (
         <Banner tone="success" message={t('spotOpened')} />

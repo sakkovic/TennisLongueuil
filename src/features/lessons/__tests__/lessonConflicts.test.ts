@@ -18,6 +18,7 @@ const input = (start: string, end: string): LessonInput => ({
   player_level_id: null,
   registration_open: true,
   registration_deadline: null,
+  is_private: false,
 });
 
 describe('slotsOverlap', () => {

@@ -65,6 +65,9 @@ export function LessonCard({
             >
               {time}
             </AppText>
+            {lesson.is_private ? (
+              <StatusBadge label={t('privateBadge')} tone="accent" icon="lock-closed" />
+            ) : null}
             {showBadge ? (
               <StatusBadge
                 label={t(AVAILABILITY_LABEL_KEYS[availability.state])}

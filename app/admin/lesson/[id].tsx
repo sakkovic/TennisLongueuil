@@ -131,7 +131,9 @@ export default function AdminLessonScreen() {
       onRefresh={() => void lessonQuery.refetch()}
       refreshing={lessonQuery.isRefetching}
     >
-      <Stack.Screen options={{ headerRight: () => <ShareLessonButton lesson={lesson} /> }} />
+      {lesson.is_private ? null : (
+        <Stack.Screen options={{ headerRight: () => <ShareLessonButton lesson={lesson} /> }} />
+      )}
       {notice ? <Banner tone="success" message={notice} /> : null}
 
       <LessonSummaryCard lesson={lesson} availability={availability}>

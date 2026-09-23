@@ -184,3 +184,48 @@ describe('editing an existing lesson', () => {
     expect(values.deadlineOffsetMinutes).toBe(150);
   });
 });
+
+describe('private lessons', () => {
+  it('is public by default, with no guests', () => {
+    expect(base().isPrivate).toBe(false);
+    expect(base().invitedPlayerIds).toEqual([]);
+    expect(toLessonInputs(once())[0].is_private).toBe(false);
+  });
+
+  it('needs at least one player, and no more players than spots', () => {
+    const privateLesson = { ...once(), isPrivate: true };
+    expect(errorsFor(privateLesson)).toHaveProperty('invitedPlayerIds');
+    expect(errorsFor({ ...privateLesson, invitedPlayerIds: ['a'] })).not.toHaveProperty(
+      'invitedPlayerIds',
+    );
+    // One court fits four players.
+    expect(
+      errorsFor({ ...privateLesson, invitedPlayerIds: ['a', 'b', 'c', 'd', 'e'] }),
+    ).toHaveProperty('invitedPlayerIds');
+    expect(
+      errorsFor({ ...privateLesson, courtCount: 2, invitedPlayerIds: ['a', 'b', 'c', 'd', 'e'] }),
+    ).not.toHaveProperty('invitedPlayerIds');
+  });
+
+  it('marks every occurrence of a private series as private', () => {
+    const inputs = toLessonInputs({
+      ...base(),
+      repeatWeekly: true,
+      repeatWeeks: 3,
+      isPrivate: true,
+      invitedPlayerIds: ['a'],
+    });
+    expect(inputs).toHaveLength(3);
+    expect(inputs.every((input) => input.is_private)).toBe(true);
+  });
+
+  it('reloads the guest list when editing', () => {
+    const lesson = makeLesson({
+      is_private: true,
+      invites: [{ player_id: 'player-1' }, { player_id: 'player-2' }],
+    });
+    const values = lessonToFormValues(lesson);
+    expect(values.isPrivate).toBe(true);
+    expect(values.invitedPlayerIds).toEqual(['player-1', 'player-2']);
+  });
+});
