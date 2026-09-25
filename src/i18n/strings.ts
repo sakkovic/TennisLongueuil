@@ -372,6 +372,11 @@ export const strings = {
     privateOnInvite: 'Private lesson · by invitation',
     privateForYou: 'Your coach set this lesson up for you.',
     lessonUpdated: 'Lesson updated.',
+    deleteAccount: 'Delete my account',
+    deleteAccountTitle: 'Delete your account?',
+    deleteAccountMessage:
+      'Your account, your profile and your lesson history are deleted for good. Spots you hold in upcoming lessons are freed for other players. This cannot be undone.',
+    keepAccount: 'Keep my account',
   },
   fr: {
     tabHome: 'Accueil',
@@ -747,6 +752,11 @@ export const strings = {
     privateOnInvite: 'Leçon privée · sur invitation',
     privateForYou: 'Votre coach a organisé cette leçon pour vous.',
     lessonUpdated: 'Leçon mise à jour.',
+    deleteAccount: 'Supprimer mon compte',
+    deleteAccountTitle: 'Supprimer votre compte ?',
+    deleteAccountMessage:
+      'Votre compte, votre profil et votre historique de leçons sont supprimés définitivement. Les places que vous occupez dans les leçons à venir sont libérées. Cette action est irréversible.',
+    keepAccount: 'Garder mon compte',
   },
 } as const;
 

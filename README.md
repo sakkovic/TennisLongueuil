@@ -224,6 +224,24 @@ npx eas-cli@latest submit --platform ios                           # upload to A
 
 Local native builds are also possible: `npx expo run:android` (Android Studio) and `npx expo run:ios` (macOS + Xcode). The bundle identifier / package is `ca.tennislongueuil.app` (change it in `app.json` before publishing).
 
+### Before the first build
+
+1. **Apply the migrations to the hosted project**: `npx supabase db push`.
+2. **Deploy the account-deletion function** (it needs the service-role key, which stays on the server):
+   ```bash
+   npx supabase functions deploy delete-account
+   ```
+   Nothing else to configure: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to the function by Supabase.
+3. **Turn on an email provider** in the Supabase dashboard (Authentication → SMTP). The built-in email only reaches members of your Supabase organisation, so password resets never arrive for real players without it.
+
+### Store checklist
+
+- **Privacy policy** and **account deletion** pages live in `docs/`. Publish them with GitHub Pages (Settings → Pages → branch `main`, folder `/docs`), then give the two URLs to Apple and Google. Replace the `[club contact email]` placeholders first.
+- **Account deletion inside the app** (required by both stores): Profile → Delete my account. A coach account is refused by the function on purpose, so the club never loses its lessons — delete it from the Supabase dashboard instead.
+- **Review account**: give Apple an approved _player_ login, because new sign-ups stay pending until the coach approves them.
+- **Google Play**, for a personal developer account: a closed test with at least 12 testers for 14 days before production. The club's own players satisfy that.
+- The app collects no location, no advertising identifier and no analytics; the data-safety form is names, emails, optional phone and photo, and lesson history.
+
 ---
 
 ## How it works

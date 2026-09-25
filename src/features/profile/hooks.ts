@@ -4,6 +4,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { queryKeys } from '@/lib/queryClient';
 
 import {
+  deleteMyAccount,
   changePassword,
   updateMyProfile,
   updatePassword,
@@ -43,6 +44,11 @@ export function useUploadAvatar() {
     },
     onSuccess: invalidate,
   });
+}
+
+/** Deletes the member's own account; the session is cleared afterwards. */
+export function useDeleteAccount() {
+  return useMutation({ mutationFn: deleteMyAccount });
 }
 
 export function useUpdatePassword() {

@@ -22,18 +22,10 @@ export function TabStack({ title, screens }: TabStackProps) {
     <Stack screenOptions={stackScreenOptions}>
       <Stack.Screen
         name="index"
-        options={
-          title
-            ? { title: t(title), headerBackVisible: false, statusBarStyle: 'light' }
-            : { headerShown: false, statusBarStyle: 'dark' }
-        }
+        options={title ? { title: t(title), headerBackVisible: false } : { headerShown: false }}
       />
       {screens.map((screen) => (
-        <Stack.Screen
-          key={screen.name}
-          name={screen.name}
-          options={{ title: t(screen.title), statusBarStyle: 'light' }}
-        />
+        <Stack.Screen key={screen.name} name={screen.name} options={{ title: t(screen.title) }} />
       ))}
     </Stack>
   );

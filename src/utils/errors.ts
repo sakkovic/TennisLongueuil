@@ -115,6 +115,14 @@ const BUSINESS_MESSAGES: Record<string, Localized> = {
     en: 'Some of the information is not valid. Please check it and try again.',
     fr: 'Certaines informations ne sont pas valides. Vérifiez-les et réessayez.',
   },
+  ADMIN_CANNOT_DELETE: {
+    en: "A coach account can't be deleted from the app. Contact your club administrator.",
+    fr: 'Un compte de coach ne peut pas être supprimé depuis l’app. Contactez l’administrateur du club.',
+  },
+  DELETE_FAILED: {
+    en: 'Your account could not be deleted. Please try again, or contact your coach.',
+    fr: 'Votre compte n’a pas pu être supprimé. Réessayez ou contactez votre coach.',
+  },
   CANNOT_DEACTIVATE_SELF: {
     en: "You can't deactivate your own account.",
     fr: 'Vous ne pouvez pas désactiver votre propre compte.',

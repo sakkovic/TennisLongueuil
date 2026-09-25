@@ -11,6 +11,32 @@ export async function fetchMyProfile(): Promise<Member | null> {
   return row ? toMember(row) : null;
 }
 
+/**
+ * Deletes the signed-in member's own account, through the delete-account Edge
+ * Function: removing an auth user needs the service-role key, which never
+ * leaves the server. The function identifies the caller from their own token.
+ */
+export async function deleteMyAccount(): Promise<void> {
+  const { data, error } = await supabase.functions.invoke<{ success?: boolean; error?: string }>(
+    'delete-account',
+    { method: 'POST' },
+  );
+  if (error) throw new Error(await functionErrorCode(error));
+  if (!data?.success) throw new Error(data?.error ?? 'DELETE_FAILED');
+}
+
+/** The function answers with a stable code ({"error":"ADMIN_CANNOT_DELETE"}). */
+async function functionErrorCode(error: unknown): Promise<string> {
+  const response = (error as { context?: Response }).context;
+  try {
+    const body = await response?.clone().json();
+    if (body && typeof body.error === 'string') return body.error;
+  } catch {
+    // Not JSON (network failure, gateway error): fall through.
+  }
+  return 'DELETE_FAILED';
+}
+
 export interface ProfileUpdate {
   full_name: string;
   phone: string | null;

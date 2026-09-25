@@ -18,7 +18,7 @@ import { useI18n } from '@/i18n';
 import type { Locale } from '@/i18n/strings';
 import { getErrorMessage, logError } from '@/utils/errors';
 
-import { useUploadAvatar } from './hooks';
+import { useDeleteAccount, useUploadAvatar } from './hooks';
 import { PlayerProfileCard } from './PlayerProfileCard';
 
 interface ProfileScreenProps {
@@ -34,6 +34,8 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
   const { data: levels } = useLevels();
   const uploadAvatar = useUploadAvatar();
   const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const deleteAccount = useDeleteAccount();
   const [signingOut, setSigningOut] = useState(false);
   const [photoMessage, setPhotoMessage] = useState<{
     tone: 'success' | 'danger';
@@ -55,6 +57,14 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
         logError('uploadAvatar', error);
         setPhotoMessage({ tone: 'danger', text: getErrorMessage(error) });
       },
+    });
+  };
+
+  const handleDeleteAccount = () => {
+    deleteAccount.mutate(undefined, {
+      // The account is gone: clearing the session sends them to the welcome screen.
+      onSuccess: () => void signOut().catch((error) => logError('signOut', error)),
+      onError: (error) => logError('deleteAccount', error),
     });
   };
 
@@ -109,11 +119,41 @@ export function ProfileScreen({ onEditProfile, onChangePassword }: ProfileScreen
           onPress={() => setConfirmSignOut(true)}
           trailing={<View />}
         />
+        {/* Both stores require account deletion from inside the app. The coach
+            keeps the club's lessons, so their account is removed by support. */}
+        {member.role === 'player' ? (
+          <>
+            <View style={styles.divider} />
+            <ListRow
+              icon="trash-outline"
+              label={t('deleteAccount')}
+              tone="danger"
+              onPress={() => {
+                deleteAccount.reset();
+                setConfirmDelete(true);
+              }}
+              trailing={<View />}
+            />
+          </>
+        ) : null}
       </View>
 
       <AppText variant="caption" tone="subtle" style={styles.note}>
         {APP_NAME} · version {Constants.expoConfig?.version ?? '1.0.0'}
       </AppText>
+
+      <ConfirmationModal
+        visible={confirmDelete}
+        title={t('deleteAccountTitle')}
+        message={t('deleteAccountMessage')}
+        confirmLabel={t('deleteAccount')}
+        cancelLabel={t('keepAccount')}
+        destructive
+        loading={deleteAccount.isPending}
+        error={deleteAccount.isError ? getErrorMessage(deleteAccount.error) : null}
+        onConfirm={handleDeleteAccount}
+        onCancel={() => setConfirmDelete(false)}
+      />
 
       <ConfirmationModal
         visible={confirmSignOut}

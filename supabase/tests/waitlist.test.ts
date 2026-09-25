@@ -305,3 +305,18 @@ describe('privacy', () => {
     expect(rows.every((row) => row.cancellation_reason === null)).toBe(true);
   });
 });
+
+describe('a deleted account', () => {
+  it('frees its spot for the next player in line', async () => {
+    const { lesson, players } = await fullLesson();
+    const waiting = await createUser(db, 'Next After Deletion');
+    await joinWaitlist(db, waiting.id, lesson.id);
+
+    // Deleting the auth user cascades to the profile and its registrations,
+    // like the delete-account function does.
+    await db.query('delete from auth.users where id = $1', [players[0].id]);
+
+    expect((await registrationStatuses(db, lesson.id))[waiting.id]).toBe('joined');
+    expect(await countJoined(db, lesson.id)).toBe(4);
+  });
+});

@@ -7,10 +7,15 @@ import { fileURLToPath } from 'node:url';
 import { deflateSync, inflateSync } from 'node:zlib';
 
 const ASSETS = fileURLToPath(new URL('../assets/', import.meta.url));
-const BG = [4, 8, 11]; // #04080B, the logo background (= app background)
-const AQUA = [30, 207, 203]; // #1ECFCB, measured brand aqua
-const AQUA_LIGHT = [108, 223, 221]; // #6CDFDD
-const AQUA_DEEP = [0, 196, 196]; // #00C4C4
+// The source logo is an aqua emblem on black: those two colours are read only
+// to extract the shape as a mask.
+const BG = [4, 8, 11]; // #04080B background of sakkatennis_logo.png
+const AQUA = [30, 207, 203]; // #1ECFCB emblem in sakkatennis_logo.png
+
+// Brand palette the icons are painted with (see src/constants/theme.ts).
+const INK = [26, 35, 28]; // #1A231C
+const GREEN = [124, 179, 66]; // #7CB342
+const LIME = [215, 242, 63]; // #D7F23F
 
 // ---------------------------------------------------------------- PNG I/O
 function decode(path) {
@@ -165,9 +170,9 @@ function coverage(px, py, size, diameter, ss = 3) {
 }
 
 const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
-/** Soft diagonal aqua gradient, like the app-icon reference (lighter bottom-right). */
-const aquaGradient = (x, y, size) =>
-  mix(AQUA_DEEP, AQUA_LIGHT, Math.min(1, Math.max(0, ((x + y) / (2 * size)) * 1.1 - 0.05)));
+/** Soft diagonal green gradient, brighter towards the bottom-right. */
+const greenGradient = (x, y, size) =>
+  mix(GREEN, LIME, Math.min(1, Math.max(0, ((x + y) / (2 * size)) * 0.85 - 0.05)));
 
 function render(size, pixel) {
   const rgba = Buffer.alloc(size * size * 4);
@@ -185,32 +190,32 @@ function render(size, pixel) {
 
 // ---------------------------------------------------------------- outputs
 const outputs = {
-  // iOS / store icon: dark emblem on full-bleed aqua (the OS rounds the corners).
+  // iOS / store icon: ink emblem on full-bleed green (the OS rounds the corners).
   'icon.png': render(1024, (x, y) => [
-    ...mix(aquaGradient(x, y, 1024), BG, coverage(x, y, 1024, 640)),
+    ...mix(greenGradient(x, y, 1024), INK, coverage(x, y, 1024, 640)),
     255,
   ]),
-  // Android adaptive icon: aqua background layer + dark emblem layer inside the safe zone.
-  'android-icon-background.png': render(1024, (x, y) => [...aquaGradient(x, y, 1024), 255]),
-  'android-icon-foreground.png': render(1024, (x, y) => [...BG, 255 * coverage(x, y, 1024, 560)]),
+  // Android adaptive icon: green background layer + ink emblem inside the safe zone.
+  'android-icon-background.png': render(1024, (x, y) => [...greenGradient(x, y, 1024), 255]),
+  'android-icon-foreground.png': render(1024, (x, y) => [...INK, 255 * coverage(x, y, 1024, 560)]),
   'android-icon-monochrome.png': render(1024, (x, y) => [
     255,
     255,
     255,
     255 * coverage(x, y, 1024, 560),
   ]),
-  // Splash: aqua emblem on transparent; app.json sets the #04080B background.
+  // Splash: green emblem on transparent; app.json sets the light background.
   'splash-icon.png': render(1024, (x, y) => [
-    ...mix(AQUA, AQUA_LIGHT, y / 1024),
+    ...mix(GREEN, LIME, (y / 1024) * 0.5),
     255 * coverage(x, y, 1024, 1000),
   ]),
   'favicon.png': render(48, (x, y) => [
-    ...mix(aquaGradient(x, y, 48), BG, coverage(x, y, 48, 34, 6)),
+    ...mix(greenGradient(x, y, 48), INK, coverage(x, y, 48, 34, 6)),
     255,
   ]),
-  // In-app emblem (hero, login, badges): aqua on transparent.
+  // In-app emblem (hero, login, badges): green on transparent.
   'brand/emblem.png': render(512, (x, y) => [
-    ...mix(AQUA, AQUA_LIGHT, (y / 512) * 0.8),
+    ...mix(GREEN, LIME, (y / 512) * 0.5),
     255 * coverage(x, y, 512, 500, 4),
   ]),
 };

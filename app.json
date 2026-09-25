@@ -14,7 +14,7 @@
     "android": {
       "package": "ca.tennislongueuil.app",
       "adaptiveIcon": {
-        "backgroundColor": "#1A231C",
+        "backgroundColor": "#7CB342",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
@@ -34,7 +34,7 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#1A231C"
+          "backgroundColor": "#F6F6F6"
         }
       ],
       [
@@ -66,6 +66,11 @@
         "projectId": "d284a44b-cec0-4ef5-97a0-66d8c4011e42"
       }
     },
-    "owner": "sakkaanis"
+    "owner": "sakkaanis",
+    "primaryColor": "#7CB342",
+    "locales": {
+      "en": "./assets/locales/en.json",
+      "fr": "./assets/locales/fr.json"
+    }
   }
 }
